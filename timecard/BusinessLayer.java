@@ -1,7 +1,16 @@
 package timecard;
+import companydata.*;
 
-import javax.ws.rs.core.*;
-import javax.ws.rs.*;
+import com.google.gson.*;
+import java.util.*;
+import java.net.*;
+import org.apache.commons.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Calendar;
+import java.util.Date;
+import java.sql.Timestamp;
+
 
 public class BusinessLayer {
 
@@ -36,11 +45,11 @@ public class BusinessLayer {
    * @return Department
    */
    public Department jsonToDepartment(String department){
-      return gson.fromJson(IOUtils.toString(department,null), Department.class);
+      return gson.fromJson(department, Department.class);
    }
    
    
-   
+ 
    
    
    /** ---------- EMPLOYEE  ---------- **/
@@ -60,7 +69,7 @@ public class BusinessLayer {
    * @return Employee
    */
    public Employee jsonToEmployee(String employee){
-      return gson.fromJson(IOUtils.toString(employee,null), Employee.class);
+      return gson.fromJson(employee, Employee.class);
    }
    
    
@@ -85,7 +94,7 @@ public class BusinessLayer {
    * @return Timecard
    */
    public Timecard jsonToTimecard(String timecard){
-      return gson.fromJson(IOUtils.toString(timecard,null), Timecard.class);
+      return gson.fromJson(timecard, Timecard.class);
    }
    
    

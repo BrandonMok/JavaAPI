@@ -1,8 +1,10 @@
 package timecard;
 
+import companydata.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.*;
-import companydata.*;
+// import javax.ws.rs.core.Application;
+import java.util.List;
 
 @Path("CompanyServices")
 public class CompanyServices {
@@ -11,7 +13,7 @@ public class CompanyServices {
    UriInfo uriInfo;
    
    // Data Layer
-   DatalLayer dl = null;
+   DataLayer dl = null;
    
    // My ID
    String id = "bxm5989";
@@ -23,17 +25,23 @@ public class CompanyServices {
    @Path("departments")
    @GET
    @Produces("application/json")
-   public List<Department> getAllDepartment(QueryParam("company") String companyName){
+   public Response getAllDepartment(@QueryParam("company") String company){
       try {
          dl = new DataLayer(id);
          
-         List<Department> departmentsList = dl.getAllDepartment(companyName);
+         // Get all departments from datalayer
+         List<Department> departmentsList = dl.getAllDepartment(company);
+         List<String> departments = null;
          
-         // do businesslayer validation!
-         //return Response.ok().build();// 
+         for(int i = 0; i < departmentsList.size(); i++){
+            departments.add(bl.departmentToJSON(departmentsList.get(i)));
+         }
+         
+         // return departments; // return list of department object
+         return Response.ok("{\"success\":\"" + departments + "}").build();
       }
       catch(Exception e){
-         System.out.println("Problem with query: "+ e.getMessage());
+          return Response.ok("{\"error\":\"no departments found!\"}").build();
       }
       finally{
          dl.close();
