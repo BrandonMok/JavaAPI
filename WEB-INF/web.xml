@@ -1,0 +1,10 @@
+<web-app>
+   <servlet>
+      <display-name>MokBP2 Service</display-name>
+      <servlet-name>timecard.ApplicationConfig</servlet-name>
+      <init-param>
+         <param-name>javax.ws.rs.ApplicationConfig</param-name>
+         <param-value>timecard.ApplicationConfig</param-value>
+      </init-param>
+   </servlet>
+</web-app>
