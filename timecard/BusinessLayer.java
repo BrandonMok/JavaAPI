@@ -5,11 +5,16 @@ import javax.ws.rs.*;
 
 public class BusinessLayer {
 
+   // GSON to JSON builders
+   GsonBuilder builder;
+   Gson gson;
+
    /**
    *  Constructor
    */
    public BusinessLayer(){
-
+      builder = new GsonBuilder();  // intialize GsonBuilder
+      gson = builder.create();      // Create Gson object
    }
    
    
@@ -21,9 +26,18 @@ public class BusinessLayer {
    * @param Department
    * @return String
    */
-   public String departmentToJSON(Department department){}
+   public String departmentToJSON(Department department){
+      return gson.toJson(department);
+   }
    
-   public Department jsonToDepartment(String department){}
+   /**
+   * jsonToDepartment
+   * @param String
+   * @return Department
+   */
+   public Department jsonToDepartment(String department){
+      return gson.fromJson(IOUtils.toString(department,null), Department.class);
+   }
    
    
    
@@ -36,9 +50,18 @@ public class BusinessLayer {
    * @param Employee
    * @return String
    */
-   public String employeeToJSON(Employee employee){}
+   public String employeeToJSON(Employee employee){
+      return gson.toJson(employee);
+   }
    
-   public Employee jsonToEmployee(String employee){}
+   /**
+   * jsonToEmployee
+   * @param String
+   * @return Employee
+   */
+   public Employee jsonToEmployee(String employee){
+      return gson.fromJson(IOUtils.toString(employee,null), Employee.class);
+   }
    
    
    
@@ -52,9 +75,18 @@ public class BusinessLayer {
    * @param Timecard
    * @return String
    */
-   public String timecardToJSON(Timecard timecard){}
+   public String timecardToJSON(Timecard timecard){
+      return gson.toJson(timecard);
+   }
    
-   public Timecard jsonToTimecard(String timecard){}
+   /**
+   * jsonToTimecard
+   * @param String
+   * @return Timecard
+   */
+   public Timecard jsonToTimecard(String timecard){
+      return gson.fromJson(IOUtils.toString(timecard,null), Timecard.class);
+   }
    
    
    
