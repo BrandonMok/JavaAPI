@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Calendar;
 import java.util.Date;
 import java.sql.Timestamp;
+import javax.ws.rs.core.*;
+import javax.ws.rs.*;
 
 
 public class BusinessLayer {
@@ -26,9 +28,15 @@ public class BusinessLayer {
       gson = builder.create();      // Create Gson object
    }
    
+   /** OTHER **/
+   public Response.ResponseBuilder notFound(String message, String id){
+      return Response.status(Response.Status.NOT_FOUND).entity(message + id);
+   }
+   public Response.ResponseBuilder badRequest(String message, String id){
+      return Response.status(Response.Status.BAD_REQUEST).entity(message + id);
+   }
    
-   
-   /** ---------- DEPARTMENT ---------- **/
+  
    
    /**
    * departmentToJSON
@@ -51,8 +59,7 @@ public class BusinessLayer {
    
  
    
-   
-   /** ---------- EMPLOYEE  ---------- **/
+
    
    /**
    * employeeToJSON
@@ -77,7 +84,7 @@ public class BusinessLayer {
    
    
    
-   /** ---------- TIMECARD ---------- **/
+
    
    /**
    * timecardToJSON
