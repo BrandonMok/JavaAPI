@@ -35,7 +35,9 @@ public class BusinessLayer {
    public Response.ResponseBuilder badRequest(String message, String id){
       return Response.status(Response.Status.BAD_REQUEST).entity(message + id);
    }
-   
+   public Response.ResponseBuilder error(Exception error){
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error: " + error);  
+   }
   
    
    /**

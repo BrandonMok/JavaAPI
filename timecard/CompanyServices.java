@@ -23,6 +23,8 @@ public class CompanyServices {
    BusinessLayer bl = new BusinessLayer();
     
    
+   /** ---------- DEPARTMENT ---------- */
+   
    // localhost:8080/MokBP2/resources/CompanyServices/departments?company={company}
    @Path("departments")
    @GET
@@ -42,7 +44,7 @@ public class CompanyServices {
          return Response.ok("{\"success\":" + departments + "}", MediaType.APPLICATION_JSON).build();
       }
       catch(Exception e){
-         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error: " + e).build();     
+         return bl.error(e).build();     
       }
       finally{
          dl.close();
@@ -58,19 +60,49 @@ public class CompanyServices {
       @QueryParam("dept_id") int dept_id
    ) {
       try{
-         dl = new DataLayer(id);
+         dl = new DataLayer(id);      
          
          Department dep = dl.getDepartment(company, dept_id);
+    
          if(dep != null){
               String department = bl.departmentToJSON(dep);
               return Response.ok("{\"success\":" + department + "}", MediaType.APPLICATION_JSON).build();
           }
           else {
-             return bl.notFound("Department not found for: ", String.valueOf(dept_id)).build();
+             return bl.notFound("Department not found with ID: ", String.valueOf(dept_id)).build();
           }
       }
       catch(Exception e){
-         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error: " + e).build();
+        return bl.error(e).build();    
+      }
+      finally{
+         dl.close();
+      }
+   }
+   
+   
+   /** ---------- EMPLOYEE ---------- */
+   
+   // localhost:8080/MokBP2/resources/CompanyServices/employees?company={company}
+   @Path("employees")
+   @GET
+   @Produces("application/json")
+   public Response getAllEmployee(@QueryParam("company") String company){
+      try{
+         dl = new DataLayer(id);
+         
+          // Get all departments from datalayer
+         List<Employee> employeeList = dl.getAllEmployee(company);
+         List<String> employees = new ArrayList<String>();
+         
+         for(int i = 0; i < employeeList.size(); i++){
+            employees.add(bl.employeeToJSON(employeeList.get(i)));
+         }
+         
+         return Response.ok("{\"success\":" + employees + "}", MediaType.APPLICATION_JSON).build();  
+      }
+      catch(Exception e){
+         return bl.error(e).build(); 
       }
       finally{
          dl.close();
