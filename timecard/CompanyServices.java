@@ -78,6 +78,8 @@ public class CompanyServices {
    }
    
    
+   
+   
    /** ---------- EMPLOYEE ---------- */
    
    // localhost:8080/MokBP2/resources/CompanyServices/employees?company={company}
@@ -88,7 +90,7 @@ public class CompanyServices {
       try{
          dl = new DataLayer(company);
          
-          // Get all departments from datalayer
+         // Get all departments from datalayer
          List<Employee> employeeList = dl.getAllEmployee(company);
          List<String> employees = new ArrayList<String>();
          
@@ -133,6 +135,70 @@ public class CompanyServices {
          dl.close();
       }
    }     
+   
+   
+   
+   
+   /** ---------- TIMECARD ---------- */
+   
+   // localhost:8080/MokBP2/resources/CompanyServices/timecards?company={company}&emp_id={emp_id}
+//    @Path("timecards")
+//    @GET
+//    @Produces("application/json")
+//    public Response getAllTimecard(
+//       @QueryParam("company") String company,
+//       @QueryParam("emp_id") int emp_id 
+//    ){
+//       try{
+//          dl = new DataLayer(company);
+//        
+//          List<Timecard> timecardList = dl.getAllTimecard(emp_id);
+//          List<String> timecards = new ArrayList<String>();
+// 
+//          for(int i = 0; i < timecardList.size(); i++){
+//             timecards.add(bl.timecardToJSON(timecardList.get(i)));
+//          }
+//          
+//          return Response.ok("{\"success\":" + timecards + "}", MediaType.APPLICATION_JSON).build();  
+//       }
+//       catch(Exception e){
+//          return bl.error(e).build();
+//       }
+//       finally{
+//          dl.close();
+//       }
+//    }
+//    
+//    // localhost:8080/MokBP2/resources/CompanyServices/timecard?company={company}&timecard_id={timecard_id}
+//    @Path("timecard")
+//    @GET
+//    @Produces("application/json")
+//    public Response getTimecard(
+//       @QueryParam("company") String company,
+//       @QueryParam("timecard_id") int timecard_id
+//    ){
+//       try{
+//          dl = new DataLayer(company);
+//          
+//          // Timecard object
+//          Timecard tc = dl.getTimecard(timecard_id);
+//          
+//          if(tc != null){
+//             String tcSTR = bl.timecardToJSON(tc);
+//             return Response.ok("{\"success\":" + tcSTR + "}", MediaType.APPLICATION_JSON).build();  
+//          }
+//          else {
+//             return bl.notFound("Timecard not found with ID: ", String.valueOf(timecard_id)).build();
+//          } 
+//       }
+//       catch(Exception e){
+//          return bl.error(e).build();
+//       }
+//       finally{
+//          dl.close();
+//       }
+//    }
+   
    
      
    
