@@ -38,10 +38,11 @@ public class CompanyServices {
             departments.add(bl.departmentToJSON(departmentsList.get(i)));
          }
          
-         return Response.ok("{\"success\":" + departments + "}", MediaType.APPLICATION_JSON).build();
+         // return OK
+         return bl.ok(departments);
       }
       catch(Exception e){
-         return bl.error(e).build();     
+         return bl.errorResponse("ERROR", e.getMessage());     
       }
       finally{
          dl.close();
@@ -62,15 +63,85 @@ public class CompanyServices {
          Department dep = dl.getDepartment(company, dept_id);
     
          if(dep != null){
-              String department = bl.departmentToJSON(dep);
-              return Response.ok("{\"success\":" + department + "}", MediaType.APPLICATION_JSON).build();
+            // Return OK    
+            return bl.ok(bl.departmentToJSON(dep));
           }
           else {
-             return bl.notFound("Department not found with ID: ", String.valueOf(dept_id)).build();
+            // ERROR: Department NOT_FOUND   
+            return bl.errorResponse("NOT_FOUND"," Department not found with ID: " + String.valueOf(dept_id));
           }
       }
       catch(Exception e){
-        return bl.error(e).build();    
+        return bl.errorResponse("ERROR",e.getMessage());    
+      }
+      finally{
+         dl.close();
+      }
+   }
+   
+   
+   @Path("department")
+   @POST
+   @Produces("application/json")
+   public Response insertDepartment(
+      @FormParam("dept_id") int dept_id,
+      @FormParam("company") String company,
+      @FormParam("dept_name") String dept_name,
+      @FormParam("dept_no") String dept_no,
+      @FormParam("location") String location
+   ){
+      try{
+        dl = new DataLayer(company);
+        
+        // When creating new department, will use company + dept_no as dept_no needs to be unqiue across ALL companies
+        String deptNo = company + dept_no;
+         
+        // Check to make sure it passes dept_no unique validation!         
+        if(bl.validateDeptNo(company, deptNo)){
+            Department newDep = null;
+            
+            // Check if dept_id was passed in or not to determine which constructor to make object from
+            if(String.valueOf(dept_id) != "" || String.valueOf(dept_id) != null){
+               // Validate that department by provided dept_id for if it doesn't already exist! 
+               if(bl.validateDeptID(company, dept_id)){
+                  newDep = dl.insertDepartment(new Department(dept_id, company, dept_name, dept_no, location));
+                  
+                  if(newDep != null){
+                     // Return OK
+                     return bl.ok(bl.departmentToJSON(newDep));
+                  }
+                  else {
+                     // ERROR: New inserted department failed
+                     return bl.errorResponse("INTERNAL_SERVER_ERROR", " Creating new department failed!");
+                  }
+               }
+               else {
+                  // Department ID already exists!
+                  return bl.errorResponse("CONFLICT", " Department ID already exists for: " +  dept_id);
+               }
+            }
+            else{
+               // No Department ID passed
+               newDep = dl.insertDepartment(new Department(company, dept_name, dept_no, location));
+            }
+            
+            // Make sure object was created
+            if(newDep != null){
+               // Return OK
+               return bl.ok(bl.departmentToJSON(newDep));
+            }
+            else {
+               // ERROR: Return error
+               return bl.errorResponse("INTERNAL_SERVER_ERROR"," Creating department failed!");
+            }
+        }
+        else{
+            // ERROR: Return error
+            return bl.errorResponse("CONFLICT", " Department Number already exists for: " +  dept_no);
+        }
+      }
+      catch(Exception e){
+         return bl.errorResponse("ERROR", e.getMessage());
       }
       finally{
          dl.close();
@@ -98,10 +169,11 @@ public class CompanyServices {
             employees.add(bl.employeeToJSON(employeeList.get(i)));
          }
          
-         return Response.ok("{\"success\":" + employees + "}", MediaType.APPLICATION_JSON).build();  
+         // Return OK 
+         return bl.ok(employees);
       }
       catch(Exception e){
-         return bl.error(e).build(); 
+         return bl.errorResponse("ERROR", e.getMessage()); 
       }
       finally{
          dl.close();
@@ -121,15 +193,16 @@ public class CompanyServices {
          
          Employee emp = dl.getEmployee(emp_id);
          if(emp != null){
-              String employee = bl.employeeToJSON(emp);
-              return Response.ok("{\"success\":" + employee + "}").build();
+            // Return OK  
+            return bl.ok(bl.employeeToJSON(emp));
           }
           else {
-             return bl.notFound("Employee not found with ID: ", String.valueOf(emp_id)).build();
+            // ERROR: Not found  
+            return bl.errorResponse("NOT_FOUND", " Employee not found with ID: " + String.valueOf(emp_id));
           }       
       }
       catch(Exception e){
-         return bl.error(e).build();
+         return bl.errorResponse("ERROR",e.getMessage());
       }
       finally{
          dl.close();
@@ -162,7 +235,7 @@ public class CompanyServices {
 //          return Response.ok("{\"success\":" + timecards + "}", MediaType.APPLICATION_JSON).build();  
 //       }
 //       catch(Exception e){
-//          return bl.error(e).build();
+//          return bl.errorResponse("ERROR", e.getMessage());
 //       }
 //       finally{
 //          dl.close();
@@ -188,11 +261,11 @@ public class CompanyServices {
 //             return Response.ok("{\"success\":" + tcSTR + "}", MediaType.APPLICATION_JSON).build();  
 //          }
 //          else {
-//             return bl.notFound("Timecard not found with ID: ", String.valueOf(timecard_id)).build();
+//             return bl.errorResponse("NOT_FOUND", " Timecard not found with ID: " + String.valueOf(timecard_id));
 //          } 
 //       }
 //       catch(Exception e){
-//          return bl.error(e).build();
+//          return bl.errorResponse("ERROR",e.getMessage());
 //       }
 //       finally{
 //          dl.close();
