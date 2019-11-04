@@ -93,27 +93,23 @@ public class CompanyServices {
       try{
         dl = new DataLayer(company);
         
-        // When creating new department, will use company + dept_no as dept_no needs to be unqiue across ALL companies
-        String deptNo = company + dept_no;
-         
+        String uniqueDep = "";
+        if(!dept_no.contains(company)){
+            uniqueDep = company + dept_no;
+        }
+        else {
+            uniqueDep = dept_no;
+        }
+               
         // Check to make sure it passes dept_no unique validation!         
-        if(bl.validateDeptNo(company, deptNo)){
+        if(bl.validateDeptNo(company, uniqueDep)){
             Department newDep = null;
             
             // Check if dept_id was passed in or not to determine which constructor to make object from
             if(String.valueOf(dept_id) != "" || String.valueOf(dept_id) != null){
                // Validate that department by provided dept_id for if it doesn't already exist! 
                if(bl.validateDeptID(company, dept_id)){
-                  newDep = dl.insertDepartment(new Department(dept_id, company, dept_name, dept_no, location));
-                  
-                  if(newDep != null){
-                     // Return OK
-                     return bl.ok(bl.departmentToJSON(newDep));
-                  }
-                  else {
-                     // ERROR: New inserted department failed
-                     return bl.errorResponse("INTERNAL_SERVER_ERROR", " Creating new department failed!");
-                  }
+                  newDep = dl.insertDepartment(new Department(dept_id, company, dept_name, uniqueDep, location));
                }
                else {
                   // Department ID already exists!
@@ -121,8 +117,8 @@ public class CompanyServices {
                }
             }
             else{
-               // No Department ID passed
-               newDep = dl.insertDepartment(new Department(company, dept_name, dept_no, location));
+               // No Department ID passed, use other constructor
+               newDep = dl.insertDepartment(new Department(company, dept_name, uniqueDep, location));
             }
             
             // Make sure object was created
@@ -215,62 +211,62 @@ public class CompanyServices {
    /** ---------- TIMECARD ---------- */
    
    // localhost:8080/MokBP2/resources/CompanyServices/timecards?company={company}&emp_id={emp_id}
-//    @Path("timecards")
-//    @GET
-//    @Produces("application/json")
-//    public Response getAllTimecard(
-//       @QueryParam("company") String company,
-//       @QueryParam("emp_id") int emp_id 
-//    ){
-//       try{
-//          dl = new DataLayer(company);
-//        
-//          List<Timecard> timecardList = dl.getAllTimecard(emp_id);
-//          List<String> timecards = new ArrayList<String>();
-// 
-//          for(int i = 0; i < timecardList.size(); i++){
-//             timecards.add(bl.timecardToJSON(timecardList.get(i)));
-//          }
-//          
-//          return Response.ok("{\"success\":" + timecards + "}", MediaType.APPLICATION_JSON).build();  
-//       }
-//       catch(Exception e){
-//          return bl.errorResponse("ERROR", e.getMessage());
-//       }
-//       finally{
-//          dl.close();
-//       }
-//    }
-//    
-//    // localhost:8080/MokBP2/resources/CompanyServices/timecard?company={company}&timecard_id={timecard_id}
-//    @Path("timecard")
-//    @GET
-//    @Produces("application/json")
-//    public Response getTimecard(
-//       @QueryParam("company") String company,
-//       @QueryParam("timecard_id") int timecard_id
-//    ){
-//       try{
-//          dl = new DataLayer(company);
-//          
-//          // Timecard object
-//          Timecard tc = dl.getTimecard(timecard_id);
-//          
-//          if(tc != null){
-//             String tcSTR = bl.timecardToJSON(tc);
-//             return Response.ok("{\"success\":" + tcSTR + "}", MediaType.APPLICATION_JSON).build();  
-//          }
-//          else {
-//             return bl.errorResponse("NOT_FOUND", " Timecard not found with ID: " + String.valueOf(timecard_id));
-//          } 
-//       }
-//       catch(Exception e){
-//          return bl.errorResponse("ERROR",e.getMessage());
-//       }
-//       finally{
-//          dl.close();
-//       }
-//    }
+   @Path("timecards")
+   @GET
+   @Produces("application/json")
+   public Response getAllTimecard(
+      @QueryParam("company") String company,
+      @QueryParam("emp_id") int emp_id 
+   ){
+      try{
+         dl = new DataLayer(company);
+       
+         List<Timecard> timecardList = dl.getAllTimecard(emp_id);
+         List<String> timecards = new ArrayList<String>();
+
+         for(int i = 0; i < timecardList.size(); i++){
+            timecards.add(bl.timecardToJSON(timecardList.get(i)));
+         }
+         
+         return Response.ok("{\"success\":" + timecards + "}", MediaType.APPLICATION_JSON).build();  
+      }
+      catch(Exception e){
+         return bl.errorResponse("ERROR", e.getMessage());
+      }
+      finally{
+         dl.close();
+      }
+   }
+   
+   // localhost:8080/MokBP2/resources/CompanyServices/timecard?company={company}&timecard_id={timecard_id}
+   @Path("timecard")
+   @GET
+   @Produces("application/json")
+   public Response getTimecard(
+      @QueryParam("company") String company,
+      @QueryParam("timecard_id") int timecard_id
+   ){
+      try{
+         dl = new DataLayer(company);
+         
+         // Timecard object
+         Timecard tc = dl.getTimecard(timecard_id);
+         
+         if(tc != null){
+            String tcSTR = bl.timecardToJSON(tc);
+            return Response.ok("{\"success\":" + tcSTR + "}", MediaType.APPLICATION_JSON).build();  
+         }
+         else {
+            return bl.errorResponse("NOT_FOUND", " Timecard not found with ID: " + String.valueOf(timecard_id));
+         } 
+      }
+      catch(Exception e){
+         return bl.errorResponse("ERROR",e.getMessage());
+      }
+      finally{
+         dl.close();
+      }
+   }
    
    
      

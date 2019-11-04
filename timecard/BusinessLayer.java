@@ -134,13 +134,16 @@ public class BusinessLayer {
    }
    
    public boolean validateDeptID(String company, int dept_id){
-      boolean valid = true;
+      boolean valid = false;
       try{
          dl = new DataLayer(company);
          
          Department dep = dl.getDepartment(company, dept_id);
+         
+         // Valid only if a department wasn't returned!
+         // Doesn't exist yet
          if(dep == null){
-            valid = false;
+            valid = true;
          }
          return valid;
       }
