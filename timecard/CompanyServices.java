@@ -3,8 +3,7 @@ package timecard;
 import companydata.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.*;
-// import javax.ws.rs.core.Application;
-import java.util.List;
+// import java.util.List;
 import java.util.*;
 
 @Path("CompanyServices")
@@ -98,13 +97,7 @@ public class CompanyServices {
         
         // Determine to make sure department name is unique
         // Allow for user to apply company + dept_no or if not, then do it here
-        String uniqueDep = "";
-        if(!dept_no.contains(company)){
-            uniqueDep = company + dept_no;
-        }
-        else {
-            uniqueDep = dept_no;
-        }
+        String uniqueDep = bl.uniquePerCompany(dept_no, company);
                
         // Check to make sure it passes dept_no unique validation!         
         if(bl.validateDeptNo(company, uniqueDep)){
@@ -150,6 +143,38 @@ public class CompanyServices {
          dl.close();
       }
    }
+   
+   // @Path("department")
+//    @PUT
+//    @Consumes(json)
+//    @Produces(json)
+//    public Response updateDepartment(Department dep){
+//       try{
+//          dl = new DataLayer(dep.getCompany());
+//          
+//          // 1) ID needs to be an existing one - look for it if exists
+//          // 2) Dept_No needs to be unique!   - will be in the list so do check to add bxm5989 + dep_no
+//          
+//          // ID needs to be an existing one
+//          if(bl.validateDeptID()){
+//             
+//          }
+//          else {
+//          
+//          }
+//          
+//          
+//          
+//          
+//          
+//       }
+//       catch(Exception e){
+//          return bl.errorResponse("ERROR", e.getMessage());
+//       }
+//       finally{
+//          dl.close();
+//       }
+//    }
    
    @Path("department")
    @DELETE
@@ -242,6 +267,33 @@ public class CompanyServices {
       }
    }     
    
+//    @Path("employee")
+//    @POST
+//    @Produces(json)
+//    public Response insertEmployee(
+//       @FormParam("company") String company,
+//       @FormParam("emp_name") String emp_name,
+//       @FormParam("emp_no") String emp_no,
+//       @FormParam("hire_date") Date hire_date,
+//       @FormParam("job") String job,
+//       @FormParam("salary") double salary,
+//       @FormParam("dept_id") int dept_id,
+//       @FormParam("mng_id") int mng_id,
+//       @FormParam("emp_id") int emp_id
+//    ){
+//       try{
+//          dl = new DataLayer(company);
+//          
+//          
+//          
+//       }
+//       catch(Exception e){
+//       
+//       }
+//       finally {
+//          dl.close();
+//       }
+//    }
    
    
    

@@ -38,6 +38,7 @@ public class BusinessLayer {
    /**
    * ok
    * @param List<String>
+   * @return Response
    * Returns an OK status response accepting a list
    */
    public Response ok(List<String> list){
@@ -45,7 +46,8 @@ public class BusinessLayer {
    }
    /**
    * ok
-   * @param String   
+   * @param String 
+   * @return Response  
    * Returns an OK status response accepting a String
    */
    public Response ok(String message){
@@ -55,6 +57,7 @@ public class BusinessLayer {
    /**
    * errorResponse
    * @param String,String
+   * @return Response
    * Returns an error Response based on a given type of error
    */ 
    public Response errorResponse(String type, String message){
@@ -78,6 +81,7 @@ public class BusinessLayer {
    /**
    * notNull
    * @param String
+   * @return boolean
    * Reusable function to test if a given value isn't null (T = not null, F = null)
    */
    public boolean notNull(String value){
@@ -86,6 +90,23 @@ public class BusinessLayer {
          notNull = true;
       }
       return notNull;
+   }
+   
+   /**
+   * uniquePerCompany
+   * @param String, String
+   * @return String
+   * Reusable function to make sure specific fields are company specific (i.e. dept_no, emp_id, ...)
+   */
+   public String uniquePerCompany(String str, String company){
+      String unique = "";
+      if(!str.contains(company)){
+         unique = company + str;
+      }
+      else {
+         unique = str;
+      }
+      return unique;
    }
    
   
@@ -117,6 +138,7 @@ public class BusinessLayer {
    /**
    * validateDeptNo
    * @param String, String
+   * @return boolean
    * Validates that a department Number doesn't already exist, so unique
    */
    public boolean validateDeptNo(String company, String dept_no){
@@ -149,6 +171,7 @@ public class BusinessLayer {
    /**
    * validateDeptID
    * @param String, int
+   * @return boolean
    * Validates a department's ID to see if it already exists
    */
    public boolean validateDeptID(String company, int dept_id){
@@ -156,8 +179,9 @@ public class BusinessLayer {
       try{
          dl = new DataLayer(company);
          
+         // Get a specific department based on company and ID to verify if it exists already or not
          Department dep = dl.getDepartment(company, dept_id);
-         
+              
          // Valid only if a department wasn't returned!
          // Doesn't exist yet
          if(dep == null){
@@ -173,6 +197,42 @@ public class BusinessLayer {
       }
       return valid;
    }
+   
+   
+//    public boolean validateDepartment(String department, Map<String, String> fields){
+//       boolean valid = false;
+//       try{
+//          // Create Department object from String
+//          // ACCEPTS a STRING to avoid having to make two functions to accept both
+//          Department dep = this.jsonToDepartment(department);       
+//          dl = new DataLayer(dep.getCompany());  // datalayer
+//          
+//          for (Map.Entry<String,String> entry : fields.entrySet()){
+//             switch(entry.getKey()){
+//                case "dept_id":
+//                   // Validate that dept_id is unique
+//                   
+//                   break;
+//                case "company":
+//                   break;
+//                case "dept_name":
+//                   break;
+//                case "dept_no":
+//                   break;
+//                case "location":
+//                   break;
+//             }
+//          } 
+//          
+//          
+//       }
+//       catch(Exception e){
+//          System.out.println(e);
+//       }
+//       finally{
+//          dl.close();
+//       }
+//    }
    
  
    
@@ -198,6 +258,19 @@ public class BusinessLayer {
       return gson.fromJson(employee, Employee.class);
    }
    
+   
+   
+//    public boolean validateEmployee(Employee emp){
+//       try{
+//          dl = new DataLayer(emp.getCompany());
+//       }
+//       catch(Exception e){
+//          System.out.println(e);
+//       }
+//       finally{
+//          dl.close();
+//       }
+//    }
    
    
    
