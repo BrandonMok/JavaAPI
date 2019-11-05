@@ -99,42 +99,48 @@ public class CompanyServices {
         // Allow for user to apply company + dept_no or if not, then do it here
         String uniqueDep = bl.uniquePerCompany(dept_no, company);
                
-        // Check to make sure it passes dept_no unique validation!         
-        if(bl.validateDeptNo(company, uniqueDep)){
-            Department newDep = null;
-            
-            // Check if dept_id was passed in or not to determine which constructor to make object from
-            if(String.valueOf(dept_id) != "" || String.valueOf(dept_id) != null){
-               // Validate that department by provided dept_id for if it doesn't already exist! 
-               if(bl.validateDeptID(company, dept_id)){
-                  newDep = dl.insertDepartment(new Department(dept_id, company, dept_name, uniqueDep, location));
+        // Check to make sure it passes dept_no unique validation!     
+        if(!uniqueDep.equals("")){    
+           if(bl.validateDeptNo(company, uniqueDep)){
+               Department newDep = null;
+               
+               // Check if dept_id was passed in or not to determine which constructor to make object from
+               if(String.valueOf(dept_id) != "" || String.valueOf(dept_id) != null){
+                  // Validate that department by provided dept_id for if it doesn't already exist! 
+                  if(bl.validateDeptID(company, dept_id)){
+                     newDep = dl.insertDepartment(new Department(dept_id, company, dept_name, uniqueDep, location));
+                  }
+                  else {
+                     // Department ID already exists!
+                     return bl.errorResponse("CONFLICT", " Department ID already exists for: " +  dept_id);
+                  }
+               }
+               else{
+                  // No Department ID passed, get list of departments -> get last department's ID -> + 1
+                  List<Department> departmentsList = dl.getAllDepartment(company);
+                  int lastID = departmentsList.get(departmentsList.size() - 1).getId() + 1;
+                  newDep = dl.insertDepartment(new Department(lastID, company, dept_name, uniqueDep, location));
+               }
+               
+               // Make sure object was created
+               if(newDep != null){
+                  // Return OK
+                  return bl.ok(bl.departmentToJSON(newDep));
                }
                else {
-                  // Department ID already exists!
-                  return bl.errorResponse("CONFLICT", " Department ID already exists for: " +  dept_id);
+                  // ERROR: Return error
+                  return bl.errorResponse("INTERNAL_SERVER_ERROR"," Creating department failed!");
                }
-            }
-            else{
-               // No Department ID passed, get list of departments -> get last department's ID -> + 1
-               List<Department> departmentsList = dl.getAllDepartment(company);
-               int lastID = departmentsList.get(departmentsList.size() - 1).getId() + 1;
-               newDep = dl.insertDepartment(new Department(lastID, company, dept_name, uniqueDep, location));
-            }
-            
-            // Make sure object was created
-            if(newDep != null){
-               // Return OK
-               return bl.ok(bl.departmentToJSON(newDep));
-            }
-            else {
+           }
+           else{
                // ERROR: Return error
-               return bl.errorResponse("INTERNAL_SERVER_ERROR"," Creating department failed!");
-            }
-        }
-        else{
-            // ERROR: Return error
-            return bl.errorResponse("CONFLICT", " Department Number already exists for: " +  dept_no);
-        }
+               return bl.errorResponse("CONFLICT", " Department Number already exists for: " +  dept_no);
+           }
+         }
+         else {
+            // ERROR: Company isn't mine
+            return bl.errorResponse("BAD_REQUEST", " Company entered isn't allowed");
+         }
       }
       catch(Exception e){
          return bl.errorResponse("ERROR", e.getMessage());
@@ -266,35 +272,60 @@ public class CompanyServices {
          dl.close();
       }
    }     
-   
-//    @Path("employee")
-//    @POST
-//    @Produces(json)
-//    public Response insertEmployee(
-//       @FormParam("company") String company,
-//       @FormParam("emp_name") String emp_name,
-//       @FormParam("emp_no") String emp_no,
-//       @FormParam("hire_date") Date hire_date,
-//       @FormParam("job") String job,
-//       @FormParam("salary") double salary,
-//       @FormParam("dept_id") int dept_id,
-//       @FormParam("mng_id") int mng_id,
-//       @FormParam("emp_id") int emp_id
-//    ){
-//       try{
-//          dl = new DataLayer(company);
-//          
-//          
-//          
-//       }
-//       catch(Exception e){
-//       
-//       }
-//       finally {
-//          dl.close();
-//       }
-//    }
-   
+ 
+ /**  
+   @Path("employee")
+   @POST
+   @Produces(json)
+   public Response insertEmployee(
+      @FormParam("company") String company,
+      @FormParam("emp_name") String emp_name,
+      @FormParam("emp_no") String emp_no,
+      @FormParam("hire_date") String hire_date,  // date
+      @FormParam("job") String job,
+      @FormParam("salary") double salary, 
+      @FormParam("dept_id") int dept_id,
+      @FormParam("mng_id") int mng_id,
+      @FormParam("emp_id") int emp_id
+   ){
+      try{
+         dl = new DataLayer(company);
+         String uniqueEmpNo = bl.uniquePerCompany(emp_no, company);
+         
+         // CHECK if emp_id was passed or not
+         if(String.valueOf(emp_id) != "" || String.valueOf(emp_id) != null){
+            
+         }
+         else{
+            // emp_id not passed, find lastID
+         }
+            
+      
+         Map<String, String> map = new HashMap<String, String>();
+            map.add("emp_name", emp_name);
+            map.add("emp_no", emp_no);
+            map.add("hire_date", hire_date);
+            map.add("job", job);
+            map.add("salary", salary);
+            map.add("dept_id", String.valueOf(dept_id));
+            map.add("mng_id", String.valueOf(mng_id));
+            
+         Employee emp = new Employee(
+            
+         if(bl.validateEmployee(
+         
+         
+         
+         
+      }
+      catch(Exception e){
+      
+      }
+      finally {
+         dl.close();
+      }
+   }
+   */
    
    
    /** ---------- TIMECARD ---------- */

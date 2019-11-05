@@ -12,6 +12,9 @@ import java.util.Date;
 import java.sql.Timestamp;
 import javax.ws.rs.core.*;
 import javax.ws.rs.*;
+import java.text.*;
+
+
 
 
 public class BusinessLayer {
@@ -100,15 +103,70 @@ public class BusinessLayer {
    */
    public String uniquePerCompany(String str, String company){
       String unique = "";
-      if(!str.contains(company)){
-         unique = company + str;
+      if(company.equals("bxm5989")){
+         if(!str.contains(company)){
+            unique = company + str;
+         }
+         else {
+            unique = str;
+         }
       }
       else {
-         unique = str;
+         unique = "";
       }
+   
+     //  if(!str.contains(company)){
+//          unique = company + str;
+//       }
+//       else {
+//          unique = str;
+//       }
       return unique;
    }
-   
+
+   /**
+    * validateDate
+    * @param Date
+    * @return boolean
+    * Validates a date
+    */
+   public boolean validateDate(String date){
+      boolean valid = false;
+      try{
+         /**
+         * Calendar class to verify dates
+         * It cannot be Saturday or Sunday
+         * Date equal to the current date or earlier (e.g. current date or in the past)
+         */   
+         Date parsedDate = new SimpleDateFormat("yyyy-MM-dd").parse(date);
+         
+         // Calendar - determine the day is allowed
+         Calendar calendar = Calendar.getInstance(); 
+         calendar.setTime(parsedDate);
+         
+         // Calendar - Current Calendar Date
+         Calendar currentCal = Calendar.getInstance();
+         Date currentDate = currentCal.getTime();  // Date object for current date
+         
+         // # day of the week
+         int day = calendar.get(Calendar.DAY_OF_WEEK);
+         
+         // Validate
+         if(day >= 2 || day <= 6 && parsedDate.compareTo(currentDate) > 0){
+            // Valid day of the week
+            valid = true;
+         }
+         else {
+            // Not valid: day of week was Saturday/Sundary and/or enteredDate is in the future
+            return valid;
+         }              
+      }
+      catch(ParseException pe){
+         // Error with parsing format - wrong entered format
+         return false;
+      }
+      return valid;
+   }
   
   
   
@@ -259,18 +317,41 @@ public class BusinessLayer {
    }
    
    
-   
-//    public boolean validateEmployee(Employee emp){
-//       try{
-//          dl = new DataLayer(emp.getCompany());
-//       }
-//       catch(Exception e){
-//          System.out.println(e);
-//       }
-//       finally{
-//          dl.close();
-//       }
-//    }
+   /**
+   public boolean validateEmployee(Employee emp, String company, Map<String, String> fields){
+      boolean valid = false;
+      try{      
+         dl = new DataLayer(company);  // datalayer
+         
+         for (Map.Entry<String,String> entry : fields.entrySet()){
+            switch(entry.getKey()){
+               case "emp_name":     
+                  break;
+               case "emp_no":
+                  break;
+               case "hire_date":
+                  break;
+               case "job":
+                  break;
+               case "salary":
+                  break;
+               case "dept_id":
+                  break;
+               case "mng_id":
+                  break;
+            }
+         } 
+         
+         
+      }
+      catch(Exception e){
+         System.out.println(e);
+      }
+      finally{
+         dl.close();
+      }
+   }
+   */
    
    
    
