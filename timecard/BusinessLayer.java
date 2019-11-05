@@ -75,6 +75,19 @@ public class BusinessLayer {
       return null;
    }
    
+   /**
+   * notNull
+   * @param String
+   * Reusable function to test if a given value isn't null (T = not null, F = null)
+   */
+   public boolean notNull(String value){
+      boolean notNull = false;
+      if(value != null){
+         notNull = true;
+      }
+      return notNull;
+   }
+   
   
   
   

@@ -16,6 +16,9 @@ public class CompanyServices {
    // Data Layer
    DataLayer dl = null;
    
+   // Produces JSON string - ALL functions return json
+   public static final String json = "application/json";
+   
    // Business layer - validation
    BusinessLayer bl = new BusinessLayer();
     
@@ -25,7 +28,7 @@ public class CompanyServices {
    // localhost:8080/MokBP2/resources/CompanyServices/departments?company={company}
    @Path("departments")
    @GET
-   @Produces("application/json")
+   @Produces(json)
    public Response getAllDepartment(@QueryParam("company") String company){
       try {
          dl = new DataLayer(company);
@@ -52,7 +55,7 @@ public class CompanyServices {
    // localhost:8080/MokBP2/resources/CompanyServices/department?company={company}&dept_id={dept_id}   
    @Path("department")
    @GET
-   @Produces("application/json")
+   @Produces(json)
    public Response getDepartment(
       @QueryParam("company") String company,
       @QueryParam("dept_id") int dept_id
@@ -82,7 +85,7 @@ public class CompanyServices {
    
    @Path("department")
    @POST
-   @Produces("application/json")
+   @Produces(json)
    public Response insertDepartment(
       @FormParam("dept_id") int dept_id,
       @FormParam("company") String company,
@@ -148,6 +151,36 @@ public class CompanyServices {
       }
    }
    
+   @Path("department")
+   @DELETE
+   @Produces(json)
+   public Response deleteDepartment(
+      @QueryParam("company") String company,
+      @QueryParam("dept_id") int dept_id
+   ){
+      try{
+         dl = new DataLayer(company);
+          
+         // deleteDepartment in DL takes a String of company name
+         int rows = dl.deleteDepartment(company, dept_id);
+         
+         if(rows > 0){
+            // If rows is > 0, then delete was successful
+            return bl.ok(" Department " + dept_id + " from " + company + " deleted");
+         }
+         else {
+            // Delete didn't return any rows
+            return bl.errorResponse("INTERNAL_SERVER_ERROR", rows + " rows affected");
+         }
+      }
+      catch(Exception e){
+         return bl.errorResponse("ERROR", e.getMessage());
+      }
+      finally{
+         dl.close();
+      }
+   }
+   
    
    
    
@@ -156,7 +189,7 @@ public class CompanyServices {
    // localhost:8080/MokBP2/resources/CompanyServices/employees?company={company}
    @Path("employees")
    @GET
-   @Produces("application/json")
+   @Produces(json)
    public Response getAllEmployee(@QueryParam("company") String company){
       try{
          dl = new DataLayer(company);
@@ -183,7 +216,7 @@ public class CompanyServices {
    // localhost:8080/MokBP2/resources/CompanyServices/employee?company={company}&emp_id={emp_id}
    @Path("employee")
    @GET
-   @Produces("application/json")
+   @Produces(json)
    public Response getEmployee(
       @QueryParam("company") String company,
       @QueryParam("emp_id") int emp_id 
@@ -217,7 +250,7 @@ public class CompanyServices {
    // localhost:8080/MokBP2/resources/CompanyServices/timecards?company={company}&emp_id={emp_id}
    @Path("timecards")
    @GET
-   @Produces("application/json")
+   @Produces(json)
    public Response getAllTimecard(
       @QueryParam("company") String company,
       @QueryParam("emp_id") int emp_id 
@@ -245,7 +278,7 @@ public class CompanyServices {
    // localhost:8080/MokBP2/resources/CompanyServices/timecard?company={company}&timecard_id={timecard_id}
    @Path("timecard")
    @GET
-   @Produces("application/json")
+   @Produces(json)
    public Response getTimecard(
       @QueryParam("company") String company,
       @QueryParam("timecard_id") int timecard_id
