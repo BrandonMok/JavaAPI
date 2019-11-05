@@ -25,6 +25,9 @@ public class BusinessLayer {
    
    // Data Layer
    DataLayer dl = null;
+   
+   // Company - must be bxm5989
+   public static final String MYCOMPANY = "bxm5989";
 
    /**
    *  Constructor
@@ -96,6 +99,20 @@ public class BusinessLayer {
    }
    
    /**
+   * validateCompany
+   * @param String
+   * @return boolean
+   * Validates that the requested company info is MINE
+   */
+   public boolean validateCompany(String company){
+      boolean valid = false;
+      if(company.equals(MYCOMPANY)){
+         valid = true;
+      }
+      return valid;
+   }
+   
+   /**
    * uniquePerCompany
    * @param String, String
    * @return String
@@ -103,7 +120,7 @@ public class BusinessLayer {
    */
    public String uniquePerCompany(String str, String company){
       String unique = "";
-      if(company.equals("bxm5989")){
+      if(this.validateCompany(company)){
          if(!str.contains(company)){
             unique = company + str;
          }
@@ -114,13 +131,6 @@ public class BusinessLayer {
       else {
          unique = "";
       }
-   
-     //  if(!str.contains(company)){
-//          unique = company + str;
-//       }
-//       else {
-//          unique = str;
-//       }
       return unique;
    }
 
@@ -128,11 +138,12 @@ public class BusinessLayer {
     * validateDate
     * @param Date
     * @return boolean
-    * Validates a date
+    * Validates a date (employee hire_date)
     */
    public boolean validateDate(String date){
-      boolean valid = false;
       try{
+         boolean valid = false;
+         
          /**
          * Calendar class to verify dates
          * It cannot be Saturday or Sunday
@@ -153,19 +164,15 @@ public class BusinessLayer {
          
          // Validate
          if(day >= 2 || day <= 6 && parsedDate.compareTo(currentDate) > 0){
-            // Valid day of the week
             valid = true;
          }
-         else {
-            // Not valid: day of week was Saturday/Sundary and/or enteredDate is in the future
-            return valid;
-         }              
+
+         return valid;            
       }
       catch(ParseException pe){
          // Error with parsing format - wrong entered format
          return false;
       }
-      return valid;
    }
   
   
@@ -318,29 +325,17 @@ public class BusinessLayer {
    
    
    /**
-   public boolean validateEmployee(Employee emp, String company, Map<String, String> fields){
+   public boolean validateEmployee(Employee emp, String company, String action){
       boolean valid = false;
-      try{      
-         dl = new DataLayer(company);  // datalayer
+      try{   
+
+      
          
-         for (Map.Entry<String,String> entry : fields.entrySet()){
-            switch(entry.getKey()){
-               case "emp_name":     
-                  break;
-               case "emp_no":
-                  break;
-               case "hire_date":
-                  break;
-               case "job":
-                  break;
-               case "salary":
-                  break;
-               case "dept_id":
-                  break;
-               case "mng_id":
-                  break;
-            }
-         } 
+         dl = new DataLayer(company);  // datalayer 
+         
+         // Same validation for INSERT and UPDATE
+         // UPDATE just has an extra check if the record already exists
+          
          
          
       }

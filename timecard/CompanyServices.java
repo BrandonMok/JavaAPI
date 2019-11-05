@@ -310,9 +310,7 @@ public class CompanyServices {
             map.add("dept_id", String.valueOf(dept_id));
             map.add("mng_id", String.valueOf(mng_id));
             
-         Employee emp = new Employee(
-            
-         if(bl.validateEmployee(
+         Employee emp = new Employee();
          
          
          
