@@ -133,6 +133,11 @@ public class BusinessLayer {
       return valid;
    }
    
+   /**
+   * validateDeptID
+   * @param String, int
+   * Validates a department's ID to see if it already exists
+   */
    public boolean validateDeptID(String company, int dept_id){
       boolean valid = false;
       try{

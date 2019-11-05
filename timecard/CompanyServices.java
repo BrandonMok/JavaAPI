@@ -93,6 +93,8 @@ public class CompanyServices {
       try{
         dl = new DataLayer(company);
         
+        // Determine to make sure department name is unique
+        // Allow for user to apply company + dept_no or if not, then do it here
         String uniqueDep = "";
         if(!dept_no.contains(company)){
             uniqueDep = company + dept_no;
@@ -117,8 +119,10 @@ public class CompanyServices {
                }
             }
             else{
-               // No Department ID passed, use other constructor
-               newDep = dl.insertDepartment(new Department(company, dept_name, uniqueDep, location));
+               // No Department ID passed, get list of departments -> get last department's ID -> + 1
+               List<Department> departmentsList = dl.getAllDepartment(company);
+               int lastID = departmentsList.get(departmentsList.size() - 1).getId() + 1;
+               newDep = dl.insertDepartment(new Department(lastID, company, dept_name, uniqueDep, location));
             }
             
             // Make sure object was created
