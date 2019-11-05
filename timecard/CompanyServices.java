@@ -281,7 +281,7 @@ public class CompanyServices {
       @FormParam("company") String company,
       @FormParam("emp_name") String emp_name,
       @FormParam("emp_no") String emp_no,
-      @FormParam("hire_date") String hire_date,  // date
+      @FormParam("hire_date") Date hire_date,  
       @FormParam("job") String job,
       @FormParam("salary") double salary, 
       @FormParam("dept_id") int dept_id,

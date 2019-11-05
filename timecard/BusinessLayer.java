@@ -140,34 +140,37 @@ public class BusinessLayer {
     * @return boolean
     * Validates a date (employee hire_date)
     */
-   public boolean validateDate(String date){
+   public boolean validateDate(Date date){
       try{
-         boolean valid = false;
-         
-         /**
-         * Calendar class to verify dates
-         * It cannot be Saturday or Sunday
-         * Date equal to the current date or earlier (e.g. current date or in the past)
-         */   
-         Date parsedDate = new SimpleDateFormat("yyyy-MM-dd").parse(date);
-         
-         // Calendar - determine the day is allowed
-         Calendar calendar = Calendar.getInstance(); 
-         calendar.setTime(parsedDate);
-         
-         // Calendar - Current Calendar Date
-         Calendar currentCal = Calendar.getInstance();
-         Date currentDate = currentCal.getTime();  // Date object for current date
-         
+          boolean valid = false;
+            
+   		 DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+   		 String dateStr = df.format(date);
+   		 Date parsedDate = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
+   		 
+   		 // Calendar - Calendar for passed in date!
+   		 Calendar calendar = Calendar.getInstance(); 
+   		 calendar.setTime(parsedDate);
+   		 
+   		 // Calendar - Current Calendar Date
+   		 Calendar currentCal = Calendar.getInstance();
+   		 Date currentDate = currentCal.getTime();  // Date OBJ for current date
+   		 
          // # day of the week
-         int day = calendar.get(Calendar.DAY_OF_WEEK);
-         
-         // Validate
-         if(day >= 2 || day <= 6 && parsedDate.compareTo(currentDate) > 0){
-            valid = true;
+         int day = calendar.get(Calendar.DAY_OF_WEEK);                     // #'ed day of the week (1-7)
+         int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);             // #'ed day of the month   (1-(29-31))
+         int maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);   // maximum # of days in the month
+        
+         // validate
+         if((day >= 2 && day <= 6) && 
+            (dayOfMonth > 0 && dayOfMonth <= maxDays) && 
+            (parsedDate.equals(currentDate) || parsedDate.before(currentDate))
+         ){
+            // Is valid!
+            valid = true;  
          }
-
-         return valid;            
+   
+          return valid;            
       }
       catch(ParseException pe){
          // Error with parsing format - wrong entered format
@@ -324,20 +327,18 @@ public class BusinessLayer {
    }
    
    
-   /**
+   
    public boolean validateEmployee(Employee emp, String company, String action){
       boolean valid = false;
       try{   
-
-      
+         // Validate company is first of all my company
+         if(this.validateCompany(company)){
+             dl = new DataLayer(company);  // datalayer 
          
-         dl = new DataLayer(company);  // datalayer 
-         
-         // Same validation for INSERT and UPDATE
-         // UPDATE just has an extra check if the record already exists
-          
-         
-         
+            // Same validation for INSERT and UPDATE
+            // UPDATE just has an extra check if the record already exists
+         }
+         return valid;
       }
       catch(Exception e){
          System.out.println(e);
@@ -345,8 +346,9 @@ public class BusinessLayer {
       finally{
          dl.close();
       }
+      return valid;
    }
-   */
+  
    
    
    
