@@ -328,56 +328,64 @@ public class BusinessLayer {
    
    
    
-//    public boolean validateEmployee(Employee emp, String company, String action){
-//       boolean valid = false;
-//       try{   
-//          // Same validation for INSERT and UPDATE (UPDATE has an extra check if the record exists in the first place)
-//          // Validate company is first of all my company
-//          if(this.validateCompany(company)){
-//              dl = new DataLayer(company);  // datalayer 
-//              
-//              /**
-//              * UPDATE extra check
-//              */
-//              if(action.equals("PUT")){
-//                // If a PUT, need to check that the emp_id already exists
-//                Employee employee = dl.getEmployee(emp.getId());
-//                valid = this.notNull(this.employeeToJSON(employee));
-//              }
-//              
-//              /**
-//              * Dept_ID check - must be an existing department
-//              */
-//              Department department = dl.getDepartment(company, emp.getDeptId());
-//              valid = this.notNull(this.departmentToJSON(department));
-//             
-//              
-//              /**
-//              * mng_id
-//              */
-//              
-//              
-//              /**
-//              * emp_no
-//              * Use uniquePerCompany() which handles making emp_no unique
-//              */
-//              String emp_no = this.uniquePerCompany(emp.getEmpNo(), company);
-//              valid = this.notNull(emp_no);
-// 
-//             
-//             
-//             
-//          }
-//          return valid;
-//       }
-//       catch(Exception e){
-//          System.out.println(e);
-//       }
-//       finally{
-//          dl.close();
-//       }
-//       return valid;
-//    }
+   public boolean validateEmployee(Employee emp, String company, String action){
+      boolean valid = false;
+      try{   
+         // Same validation for INSERT and UPDATE (UPDATE has an extra check if the record exists in the first place)
+         // Validate company is first of all my company
+         if(this.validateCompany(company)){
+             dl = new DataLayer(company);  // datalayer 
+             
+             /**
+             * UPDATE extra check
+             */
+             if(action.equals("PUT")){
+               // If a PUT, need to check that the emp_id already exists
+               Employee employee = dl.getEmployee(emp.getId());
+               if(!this.notNull(this.employeeToJSON(employee))){ 
+                  return false; 
+               }
+             }
+             
+             /**
+             * Dept_ID check - must be an existing department
+             */
+             Department department = dl.getDepartment(company, emp.getDeptId());
+             if(!this.notNull(this.departmentToJSON(department))){ 
+               return false; 
+             }
+             
+             /**
+             * mng_id
+             * Must be a record ID of an EXISTING employee!
+             * Set to 0 if the first employee OR to another employee that doesn't have a manager
+             */
+             // GET EMPLOYEE OBJ with an emp_id == mng_id
+             
+             
+             
+             /**
+             * emp_no
+             * Use uniquePerCompany() which handles making emp_no unique
+             */
+             String emp_no = this.uniquePerCompany(emp.getEmpNo(), company);
+             if(!this.notNull(emp_no)){ 
+               return false; 
+             }
+            
+            
+            
+         }
+         return valid;
+      }
+      catch(Exception e){
+         System.out.println(e);
+      }
+      finally{
+         dl.close();
+      }
+      return valid;
+   }
   
    
    
