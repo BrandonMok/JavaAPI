@@ -102,25 +102,7 @@ public class CompanyServices {
         // Check to make sure it passes dept_no unique validation!     
         if(!uniqueDep.equals("")){    
            if(bl.validateDeptNo(company, uniqueDep)){
-               Department newDep = null;
-               
-               // Check if dept_id was passed in or not to determine which constructor to make object from
-               if(String.valueOf(dept_id) != "" || String.valueOf(dept_id) != null){
-                  // Validate that department by provided dept_id for if it doesn't already exist! 
-                  if(bl.validateDeptID(company, dept_id)){
-                     newDep = dl.insertDepartment(new Department(dept_id, company, dept_name, uniqueDep, location));
-                  }
-                  else {
-                     // Department ID already exists!
-                     return bl.errorResponse("CONFLICT", " Department ID already exists for: " +  dept_id);
-                  }
-               }
-               else{
-                  // No Department ID passed, get list of departments -> get last department's ID -> + 1
-                  List<Department> departmentsList = dl.getAllDepartment(company);
-                  int lastID = departmentsList.get(departmentsList.size() - 1).getId() + 1;
-                  newDep = dl.insertDepartment(new Department(lastID, company, dept_name, uniqueDep, location));
-               }
+               Department newDep = newDep = dl.insertDepartment(new Department(dept_id, company, dept_name, uniqueDep, location));
                
                // Make sure object was created
                if(newDep != null){
