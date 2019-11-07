@@ -386,17 +386,34 @@ public class BusinessLayer {
              
              boolean existingEmp = false;
              List<Employee> employeeList = dl.getAllEmployee(company);
-             for (Employee employ : employeeList){
-               // Verify that the entered mng_id is the emp_id of an existing employee
-               if(employ.getId() == emp.getMngId()){
-                  existingEmp = true;
-                  break;
-               }
-             } 
-             // if existingEmp was never found, set to 0
-             if(!existingEmp){
-               emp.setMngId(0);
+             if(employeeList.size() == 0){
+               // No employees - set mng_id to 0
+               emp.setMngId(0); 
              }
+             else {
+                Employee noManagerEmployee = null;
+             
+                for (Employee employ : employeeList){
+                  // Verify that the entered mng_id is the emp_id of an existing employee
+                  if(employ.getId() == emp.getMngId()){
+                     existingEmp = true;
+                     break;
+                  }
+                  // Also watchout at the same time if an employee who doesn't have a manager, save that employee for next if
+                  // Prevents having to do two iterations over same list if first condition didn't find anything
+                  if(employ.getMngId() == 0){
+                     noManagerEmployee = employ;
+                  }
+                } 
+                
+                // if existingEmp was never found, set to 0
+                if(!existingEmp){
+                  // set employee's mng_id to an employee who doesn't have a manager
+                  emp.setMngId(noManagerEmployee.getId());
+                }
+             }
+
+
              
 
              //emp_no
