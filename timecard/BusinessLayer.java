@@ -178,6 +178,10 @@ public class BusinessLayer {
       }
    }
    
+   public java.sql.Date convertJavaDateToSqlDate(Date date) {
+      return new java.sql.Date(date.getTime());
+   }
+   
    /**
    * validString
    * @param String
@@ -368,7 +372,6 @@ public class BusinessLayer {
                return null;
              }
              
-             
              // Dept_ID check - must be an existing department
              Department department = dl.getDepartment(company, emp.getDeptId());
              if(!this.notNull(this.departmentToJSON(department))){ 
@@ -380,17 +383,13 @@ public class BusinessLayer {
              * Must be a record ID of an EXISTING employee!
              * Set to 0 if the first employee OR to another employee that doesn't have a manager
              */
-             // GET EMPLOYEE OBJ with an emp_id == mng_id
-             // get all employees match, find if one of their mng_id is the emp_id of an existing employee
-             // if not will just set to 0
-             
-             boolean existingEmp = false;
              List<Employee> employeeList = dl.getAllEmployee(company);
              if(employeeList.size() == 0){
                // No employees - set mng_id to 0
                emp.setMngId(0); 
              }
              else {
+                boolean existingEmp = false;
                 Employee noManagerEmployee = null;
              
                 for (Employee employ : employeeList){
@@ -413,9 +412,6 @@ public class BusinessLayer {
                 }
              }
 
-
-             
-
              //emp_no
              //Use uniquePerCompany() which handles making emp_no unique
              String emp_no = this.uniquePerCompany(emp.getEmpNo(), company);
@@ -434,12 +430,7 @@ public class BusinessLayer {
              }
              
              // salary
-//              try{
-//              
-//              }
-//              catch(){
-//              
-//              } 
+
          }
          // lastly, return employee object whether null or not
          // Null => something invalid

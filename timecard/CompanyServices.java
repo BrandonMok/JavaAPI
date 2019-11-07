@@ -255,7 +255,6 @@ public class CompanyServices {
       }
    }     
  
- /**  
    @Path("employee")
    @POST
    @Produces(json)
@@ -274,37 +273,35 @@ public class CompanyServices {
          dl = new DataLayer(company);        
          
          Employee emp = null; 
-            
          if(bl.notNull(emp_id)){
-            emp = new Employee(emp_id, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
+            emp = new Employee(emp_id, emp_name, emp_no, bl.convertJavaDateToSqlDate(hire_date), job, salary, dept_id, mng_id);
          }   
          else {
-            emp = new Employee(emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
+            emp = new Employee(emp_name, emp_no, bl.convertJavaDateToSqlDate(hire_date), job, salary, dept_id, mng_id);
          }
          
-         
-         Employee validatedEmp = bl.validateEmployee(emp);
-         
+         // VALIDATE the employee object
+         Employee validatedEmp = bl.validateEmployee(emp, company, "POST");
+       
          if(bl.notNull(validatedEmp)){
             // perform DL insert
             // return JSON string of newly inserted employee
+            validatedEmp = dl.insertEmployee(validatedEmp);
+            return bl.ok(bl.employeeToJSON(validatedEmp));
          }
          else {
             // return error Response
-            return bl.errorResponse("");
-         }
-         
-         
-         
+            return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input!");
+         } 
       }
       catch(Exception e){
-      
+         return bl.errorResponse("ERROR", e.getMessage());
       }
       finally {
          dl.close();
       }
    }
-   */
+
    
    
    /** ---------- TIMECARD ---------- */
