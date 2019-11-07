@@ -64,7 +64,7 @@ public class CompanyServices {
          
          Department dep = dl.getDepartment(company, dept_id);
     
-         if(dep != null){
+         if(bl.notNull(dep)){
             // Return OK    
             return bl.ok(bl.departmentToJSON(dep));
           }
@@ -105,7 +105,7 @@ public class CompanyServices {
                Department newDep = newDep = dl.insertDepartment(new Department(dept_id, company, dept_name, uniqueDep, location));
                
                // Make sure object was created
-               if(newDep != null){
+               if(bl.notNull(newDep)){
                   // Return OK
                   return bl.ok(bl.departmentToJSON(newDep));
                }
@@ -238,7 +238,7 @@ public class CompanyServices {
          dl = new DataLayer(company);
          
          Employee emp = dl.getEmployee(emp_id);
-         if(emp != null){
+         if(bl.notNull(emp)){
             // Return OK  
             return bl.ok(bl.employeeToJSON(emp));
           }
@@ -271,29 +271,28 @@ public class CompanyServices {
       @FormParam("emp_id") int emp_id
    ){
       try{
-         dl = new DataLayer(company);
-         String uniqueEmpNo = bl.uniquePerCompany(emp_no, company);
+         dl = new DataLayer(company);        
          
-         // CHECK if emp_id was passed or not
-         if(String.valueOf(emp_id) != "" || String.valueOf(emp_id) != null){
+         Employee emp = null; 
             
+         if(bl.notNull(emp_id)){
+            emp = new Employee(emp_id, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
+         }   
+         else {
+            emp = new Employee(emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
          }
-         else{
-            // emp_id not passed, find lastID
-         }
-            
-      
-         Map<String, String> map = new HashMap<String, String>();
-            map.add("emp_name", emp_name);
-            map.add("emp_no", emp_no);
-            map.add("hire_date", hire_date);
-            map.add("job", job);
-            map.add("salary", salary);
-            map.add("dept_id", String.valueOf(dept_id));
-            map.add("mng_id", String.valueOf(mng_id));
-            
-         Employee emp = new Employee();
          
+         
+         Employee validatedEmp = bl.validateEmployee(emp);
+         
+         if(bl.notNull(validatedEmp)){
+            // perform DL insert
+            // return JSON string of newly inserted employee
+         }
+         else {
+            // return error Response
+            return bl.errorResponse("");
+         }
          
          
          
@@ -352,7 +351,7 @@ public class CompanyServices {
          // Timecard object
          Timecard tc = dl.getTimecard(timecard_id);
          
-         if(tc != null){
+         if(bl.notNull(tc)){
             String tcSTR = bl.timecardToJSON(tc);
             return Response.ok("{\"success\":" + tcSTR + "}", MediaType.APPLICATION_JSON).build();  
          }

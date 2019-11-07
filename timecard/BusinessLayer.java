@@ -90,9 +90,9 @@ public class BusinessLayer {
    * @return boolean
    * Reusable function to test if a given value isn't null (T = not null, F = null)
    */
-   public boolean notNull(String value){
+   public boolean notNull(Object obj){
       boolean notNull = false;
-      if(value != null){
+      if(obj != null){
          notNull = true;
       }
       return notNull;
@@ -177,6 +177,23 @@ public class BusinessLayer {
          return false;
       }
    }
+   
+   /**
+   * validString
+   * @param String
+   * @return boolean
+   * Reusable function to validate a string that shouldn't have any numbers
+   */
+   public boolean validString(String str){
+      boolean valid = false;
+      // CHECK: String doesn't numbers!
+      if(!str.matches(".*\\d.*")){
+         valid = true;
+      }  
+      return valid;
+   }
+   
+
   
   
   
@@ -327,32 +344,35 @@ public class BusinessLayer {
    }
    
    
-   
-   public boolean validateEmployee(Employee emp, String company, String action){
-      boolean valid = false;
+   /**
+   * validateEmployee
+   * @param Employee, String, String
+   * @return Employee
+   * Validates an employee object, returns an Employee Object as if there's any adjustments/changes will need to use changed object
+   */
+   public Employee validateEmployee(Employee emp, String company, String action){
       try{   
          // Same validation for INSERT and UPDATE (UPDATE has an extra check if the record exists in the first place)
          // Validate company is first of all my company
          if(this.validateCompany(company)){
              dl = new DataLayer(company);  // datalayer 
              
-             /**
-             * UPDATE extra check
-             */
-             if(action.equals("PUT")){
-               // If a PUT, need to check that the emp_id already exists
-               Employee employee = dl.getEmployee(emp.getId());
-               if(!this.notNull(this.employeeToJSON(employee))){ 
-                  return false; 
-               }
+             // CHECK: if employee already exists
+             // For PUT, want it to exist so if notNull returns false (is null)  return false
+             // For POST, don't want it to exist so if notNUll returns true (object returned) return false
+             Employee employee = dl.getEmployee(emp.getId());
+             if(!this.notNull(employee) && action.equals("PUT")){
+               return null;
+             }
+             else if (this.notNull(employee) && action.equals("POST")){
+               return null;
              }
              
-             /**
-             * Dept_ID check - must be an existing department
-             */
+             
+             // Dept_ID check - must be an existing department
              Department department = dl.getDepartment(company, emp.getDeptId());
              if(!this.notNull(this.departmentToJSON(department))){ 
-               return false; 
+               return null; 
              }
              
              /**
@@ -361,22 +381,53 @@ public class BusinessLayer {
              * Set to 0 if the first employee OR to another employee that doesn't have a manager
              */
              // GET EMPLOYEE OBJ with an emp_id == mng_id
+             // get all employees match, find if one of their mng_id is the emp_id of an existing employee
+             // if not will just set to 0
              
+             boolean existingEmp = false;
+             List<Employee> employeeList = dl.getAllEmployee(company);
+             for (Employee employ : employeeList){
+               // Verify that the entered mng_id is the emp_id of an existing employee
+               if(employ.getId() == emp.getMngId()){
+                  existingEmp = true;
+                  break;
+               }
+             } 
+             // if existingEmp was never found, set to 0
+             if(!existingEmp){
+               emp.setMngId(0);
+             }
              
-             
-             /**
-             * emp_no
-             * Use uniquePerCompany() which handles making emp_no unique
-             */
+
+             //emp_no
+             //Use uniquePerCompany() which handles making emp_no unique
              String emp_no = this.uniquePerCompany(emp.getEmpNo(), company);
              if(!this.notNull(emp_no)){ 
-               return false; 
+               return null; 
              }
-            
-            
-            
+             
+             // emp_name + job
+             if(!validString(emp.getEmpName()) || !validString(emp.getJob())){
+               return null;
+             }
+             
+             // hire_date
+             if(!validateDate(emp.getHireDate())){
+               return null;
+             }
+             
+             // salary
+//              try{
+//              
+//              }
+//              catch(){
+//              
+//              } 
          }
-         return valid;
+         // lastly, return employee object whether null or not
+         // Null => something invalid
+         // Not null => everything is fine
+         return emp;
       }
       catch(Exception e){
          System.out.println(e);
@@ -384,7 +435,7 @@ public class BusinessLayer {
       finally{
          dl.close();
       }
-      return valid;
+      return emp;
    }
   
    
