@@ -262,7 +262,7 @@ public class CompanyServices {
       @FormParam("company") String company,
       @FormParam("emp_name") String emp_name,
       @FormParam("emp_no") String emp_no,
-      @FormParam("hire_date") Date hire_date,  
+      @FormParam("hire_date") java.sql.Date hire_date,   
       @FormParam("job") String job,
       @FormParam("salary") double salary, 
       @FormParam("dept_id") int dept_id,
@@ -274,10 +274,10 @@ public class CompanyServices {
          
          Employee emp = null; 
          if(bl.notNull(emp_id)){
-            emp = new Employee(emp_id, emp_name, emp_no, bl.convertJavaDateToSqlDate(hire_date), job, salary, dept_id, mng_id);
+            emp = new Employee(emp_id, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
          }   
          else {
-            emp = new Employee(emp_name, emp_no, bl.convertJavaDateToSqlDate(hire_date), job, salary, dept_id, mng_id);
+            emp = new Employee(emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
          }
          
          // VALIDATE the employee object

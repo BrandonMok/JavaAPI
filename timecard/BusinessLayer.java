@@ -178,10 +178,6 @@ public class BusinessLayer {
       }
    }
    
-   public java.sql.Date convertJavaDateToSqlDate(Date date) {
-      return new java.sql.Date(date.getTime());
-   }
-   
    /**
    * validString
    * @param String
@@ -430,12 +426,15 @@ public class BusinessLayer {
              }
              
              // salary
-
+             
+            
+            // lastly, return employee object whether null or not
+            // Null => something invalid
+            // Not null => everything is fine
+            return emp;
          }
-         // lastly, return employee object whether null or not
-         // Null => something invalid
-         // Not null => everything is fine
-         return emp;
+         
+         return null;
       }
       catch(Exception e){
          System.out.println(e);
