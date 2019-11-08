@@ -174,16 +174,22 @@ public class CompanyServices {
       try{
          dl = new DataLayer(company);
           
-         // deleteDepartment in DL takes a String of company name
-         int rows = dl.deleteDepartment(company, dept_id);
-         
-         if(rows > 0){
-            // If rows is > 0, then delete was successful
-            return bl.ok(" Department " + dept_id + " from " + company + " deleted");
+         // GET department first to verify that it exists!
+         Department dep = dl.getDepartment(company, dept_id);
+         if(bl.notNull(dep)){
+            int rows = dl.deleteDepartment(company, dept_id);
+            if(rows > 0){
+               // If rows is > 0, then delete was successful
+               return bl.ok(" Department " + dept_id + " from " + company + " deleted");
+            }
+            else {
+               // Delete didn't return any rows
+               return bl.errorResponse("INTERNAL_SERVER_ERROR", rows + " rows affected");
+            }
          }
          else {
-            // Delete didn't return any rows
-            return bl.errorResponse("INTERNAL_SERVER_ERROR", rows + " rows affected");
+            // Department DOES NOT EXIST
+            return bl.errorResponse("NOT_FOUND", " Department " + dept_id + " from " + company + " doesn't exist!");
          }
       }
       catch(Exception e){
@@ -293,6 +299,41 @@ public class CompanyServices {
             // return error Response
             return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input!");
          } 
+      }
+      catch(Exception e){
+         return bl.errorResponse("ERROR", e.getMessage());
+      }
+      finally {
+         dl.close();
+      }
+   }
+   
+   @Path("employee")
+   @DELETE
+   @Produces(json)
+   public Response deleteEmployee(
+      @QueryParam("company") String company, 
+      @QueryParam("emp_id") int emp_id
+   ){
+      try {
+         dl = new DataLayer(company);
+         
+         // Get employee to make sure it exists
+         Employee emp = dl.getEmployee(emp_id);
+         
+         if(bl.notNull(emp)){
+            int rows = dl.deleteEmployee(emp_id);
+            if(rows > 0){
+               return bl.ok(" Employee with ID " + emp_id + " from " + company + " deleted!");
+            }
+            else {
+               return bl.errorResponse("INTERNAL_SERVER_ERROR", rows + " rows affected");
+            }
+         }
+         else {
+            // Employee doesn't exist!
+            return bl.errorResponse("NOT_FOUND", " Employee " + emp_id + " not found!");
+         }
       }
       catch(Exception e){
          return bl.errorResponse("ERROR", e.getMessage());
