@@ -283,41 +283,79 @@ public class BusinessLayer {
       return valid;
    }
    
-   
-//    public boolean validateDepartment(String department, Map<String, String> fields){
-//       boolean valid = false;
-//       try{
-//          // Create Department object from String
-//          // ACCEPTS a STRING to avoid having to make two functions to accept both
-//          Department dep = this.jsonToDepartment(department);       
-//          dl = new DataLayer(dep.getCompany());  // datalayer
-//          
-//          for (Map.Entry<String,String> entry : fields.entrySet()){
-//             switch(entry.getKey()){
-//                case "dept_id":
-//                   // Validate that dept_id is unique
-//                   
-//                   break;
-//                case "company":
-//                   break;
-//                case "dept_name":
-//                   break;
-//                case "dept_no":
-//                   break;
-//                case "location":
-//                   break;
-//             }
-//          } 
-//          
-//          
-//       }
-//       catch(Exception e){
-//          System.out.println(e);
-//       }
-//       finally{
-//          dl.close();
-//       }
-//    }
+   /**
+   * validateDepartment
+   * @param Department, String, String
+   * @return Department
+   * Validates a Deparment object 
+   */
+   public Department validateDepartment(Department dep, String company, String action){
+      try{
+         if(this.validateCompany(company)){
+            dl = new DataLayer(company);
+            
+            Department department = dl.getDepartment(company, dep.getId());  
+            List<Department> depList = dl.getAllDepartment(company);
+            if(action.equals("PUT")){
+               if(!this.notNull(department)){
+                  // PUT: don't want the department to be null when trying to update it
+                  return null;
+               }        
+            }
+            else if(action.equals("POST")){
+               if(this.notNull(department)){
+                  // POST: don't want obj to exist already
+                  return null;
+               }
+            }
+
+
+            // Validate - dept_no must be unique among from existing ones
+            String dep_no = this.uniquePerCompany(dep.getDeptNo(), company);
+         
+            // FIND if there's an existing department w/the same dep_no
+            List<Department> dList = dl.getAllDepartment(company);
+            
+            // Cycle through all departments
+            for (Department dept : dList){
+               // if department # == the uniquely created/modified dep_no
+               if(dept.getDeptNo() == dep_no){
+                  // CHECK: which action
+                  // POST: Return null bc that means the dep_no is already used
+                  // PUT: Department object already exists, so make sure that the found department is the same as one being modified (one in function parameters)
+                  if(action.equals("POST")){
+                     return null; // there's a department that already exists with that dep_no
+                  }
+                  else if(action.equals("PUT")){
+                     // If this department object isn't the same as one passed in function, BUT has the SAME dep_no
+                     // then something went wrong
+                     if(dep.getId() != dept.getId()){
+                        return null;
+                     }
+                  }
+               }
+            }
+            
+            // If there wasn't a department found with the uniquely created/modifed dep_no, 
+            // and the unique dep_no wasn't changed from validation compared to one entered by user
+            // set the object's dep_no to the uniquePerCompany()
+            if(dep_no != dep.getDeptNo()){
+               dep.setDeptNo(dep_no);
+            }
+            
+            return dep;
+         }
+
+         return null;
+      }
+      catch(Exception e){
+         System.out.println(e);
+      }
+      finally{
+         dl.close();
+      }
+      return dep;
+   }
    
  
    
@@ -414,6 +452,9 @@ public class BusinessLayer {
              if(!this.notNull(emp_no)){ 
                return null; 
              }
+			 else {
+				emp.setEmpNo(emp_no);
+			 }
              
              // emp_name + job
              if(!validString(emp.getEmpName()) || !validString(emp.getJob())){
