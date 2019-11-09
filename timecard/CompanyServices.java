@@ -20,7 +20,46 @@ public class CompanyServices {
    
    // Business layer - validation
    BusinessLayer bl = new BusinessLayer();
-    
+   
+   /** ---------- COMPANY ---------- */
+/**   
+   @Path("company")
+   @DELETE
+   @Produces(json)
+   public Response deleteCompany( @QueryParam("company") String company ){
+      try {
+        if(bl.validateCompany(company)){
+            // Get all timecards -> delete (FK on emp_id) ( deleteTimecard(int timecard_id) )
+            // Get all employee -> delete (FK on dept_id) ( deleteEmployee(int emp_id) )
+            // Get all departments -> delete (NO FK) ( deleteDepartment(String company, int dept_id) )
+        
+            // Do DELETE
+            // int rows = dl.deleteCompany(company);
+            
+              if(rows > 0){
+                  // If rows is > 0, then delete was successful
+                  return bl.ok(" Company " + company + "'s information deleted");
+               }
+               else {
+                  // Delete didn't return any rows
+                  return bl.errorResponse("INTERNAL_SERVER_ERROR", rows + " rows affected");
+               }
+         }
+         else {   
+            return bl.errorResponse("BAD_REQUEST", " company isn't valid");
+         }
+      }
+      catch(Exception e){
+         return bl.errorResponse("ERROR", e.getMessage());
+      }
+      finally {
+         dl.close();
+      }  
+   }
+ */
+ 
+ 
+ 
    
    /** ---------- DEPARTMENT ---------- */
    
@@ -308,6 +347,30 @@ public class CompanyServices {
       }
    }
    
+//    @Path("employee")
+//    @PUT
+//    @Produces(json)
+//    public Response updateEmployee(Employee emp){
+//       try{
+//          dl = new DataLayer(emp.getCompany());
+//    
+//          // validate employee
+//          Employee validatedEmp = bl.validateEmployee(emp, emp.getCompany(), "PUT");
+//          if(bl.notNull(validatedEmp)){
+//             return bl.ok(bl.employeeToJSON(validatedEmp));
+//          }
+//          else {
+//             return bl.errorResponse("");
+//          }
+//       }
+//       catch(Exception e){
+//          return bl.errorResponse("ERROR", e.getMessage());
+//       }
+//       finally {
+//          dl.close();
+//       }
+//    }
+   
    @Path("employee")
    @DELETE
    @Produces(json)
@@ -352,20 +415,23 @@ public class CompanyServices {
    @GET
    @Produces(json)
    public Response getAllTimecard(
-      @QueryParam("company") String company,
-      @QueryParam("emp_id") int emp_id 
+      @QueryParam("company") String company, 
+      @QueryParam("emp_id") int emp_id
    ){
       try{
          dl = new DataLayer(company);
        
          List<Timecard> timecardList = dl.getAllTimecard(emp_id);
          List<String> timecards = new ArrayList<String>();
-
-         for(int i = 0; i < timecardList.size(); i++){
-            timecards.add(bl.timecardToJSON(timecardList.get(i)));
+         if(bl.notNull(timecardList) && timecardList.size() > 0){
+            for(int i = 0; i < timecardList.size(); i++){
+               timecards.add(bl.timecardToJSON(timecardList.get(i)));
+            }
+            return bl.ok(timecards);  
          }
-         
-         return Response.ok("{\"success\":" + timecards + "}", MediaType.APPLICATION_JSON).build();  
+         else {
+            return bl.errorResponse("NOT_FOUND", " No timecards found for employee " + emp_id + "!");
+         } 
       }
       catch(Exception e){
          return bl.errorResponse("ERROR", e.getMessage());
@@ -390,15 +456,14 @@ public class CompanyServices {
          Timecard tc = dl.getTimecard(timecard_id);
          
          if(bl.notNull(tc)){
-            String tcSTR = bl.timecardToJSON(tc);
-            return Response.ok("{\"success\":" + tcSTR + "}", MediaType.APPLICATION_JSON).build();  
+            return bl.ok(bl.timecardToJSON(tc));  
          }
          else {
-            return bl.errorResponse("NOT_FOUND", " Timecard not found with ID: " + String.valueOf(timecard_id));
+            return bl.errorResponse("NOT_FOUND", " Timecard " + String.valueOf(timecard_id) + " not found!");
          } 
       }
       catch(Exception e){
-         return bl.errorResponse("ERROR",e.getMessage());
+         return bl.errorResponse("ERROR", e.getMessage());
       }
       finally{
          dl.close();
