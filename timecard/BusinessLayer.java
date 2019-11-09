@@ -469,4 +469,34 @@ public class BusinessLayer {
    public Timecard jsonToTimecard(String timecard){
       return gson.fromJson(timecard, Timecard.class);
    }  
+   
+   /**
+   * validateTimecard
+   * @param Timecard, String, String
+   * @return Timecard
+   * Validates that a timecard is valid before proceeding to a DL action
+   */
+//    public Timecard validateTimecard(Timecard tc, String company, String action){
+//       try{
+//          if(this.validateCompany(company)){
+//             dl = new DataLayer(company);
+//             
+//             // emp_d most be an existing employee
+//             Employee emp = dl.getEmployee(tc.getEmpId());
+//             
+//          }
+//          else {
+//             // Not my company
+//             return null;
+//          }
+//       }
+//       catch(Exception e){
+//          System.out.println(e);
+//       }
+//       finally{
+//          dl.close();
+//       }
+//    }
+
+
 }// end business layer

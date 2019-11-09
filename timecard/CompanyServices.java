@@ -352,7 +352,7 @@ public class CompanyServices {
 //    @Produces(json)
 //    public Response updateEmployee(Employee emp){
 //       try{
-//          dl = new DataLayer(emp.getCompany());
+//          dl = new DataLayer(emp.getCompany()); // emp doesn't have a getCompany() 
 //    
 //          // validate employee
 //          Employee validatedEmp = bl.validateEmployee(emp, emp.getCompany(), "PUT");
@@ -420,7 +420,7 @@ public class CompanyServices {
    ){
       try{
          dl = new DataLayer(company);
-       
+         
          List<Timecard> timecardList = dl.getAllTimecard(emp_id);
          List<String> timecards = new ArrayList<String>();
          if(bl.notNull(timecardList) && timecardList.size() > 0){
@@ -466,6 +466,82 @@ public class CompanyServices {
          return bl.errorResponse("ERROR", e.getMessage());
       }
       finally{
+         dl.close();
+      }
+   }
+   
+//    @Path("timecard")
+//    @POST
+//    @Produces(json)
+//    public Response insertTimecard(
+//       @FormParam("company") String company,
+//       @FormParam("emp_id") int emp_id,
+//       @FormParam("start_time") java.sql.Timestamp start_time,
+//       @FormParam("end_time") java.sql.Timestamp end_time,
+//       @FormParam("timecard_id") int timecard_id
+//    ){
+//       try {
+//          dl = new DataLayer(company);
+//          
+//          Timecard tc = null;
+//          if(bl.notNull(timecard_id)){
+//             tc = new Timecard(timecard_id, start_time, end_time, emp_id);
+//          }
+//          else {
+//             tc = new Timecard(start_time, end_time, emp_id);
+//          }
+//          
+//          Timecard validTimecard = bl.validateTimecard(tc, company, "POST");
+//          
+//          
+//          if(bl.notNull(validTimecard)){
+//             // perform DL insert
+//             // return JSON string of newly inserted employee
+//             validTimecard = dl.insertEmployee(validTimecard);
+//             return bl.ok(bl.timecardToJSON(validTimecard));
+//          }
+//          else {
+//             // return error Response
+//             return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input!");
+//          } 
+//       }
+//       catch(Exception e){
+//          return bl.errorResponse("ERROR", e.getMessage());
+//       }
+//       finally {
+//          dl.close();
+//       }
+//    }
+
+
+   @Path("timecard")
+   @DELETE
+   @Produces(json)
+   public Response deleteTimecard( 
+      @QueryParam("company") String company,
+      @QueryParam("timecard_id") int timecard_id
+   ){
+      try {
+         dl = new DataLayer(company);
+         
+         Timecard tc = dl.getTimecard(timecard_id);
+         if(bl.notNull(tc)){
+            int rows = dl.deleteTimecard(timecard_id);
+            if(rows > 0){
+               return bl.ok(" Timecard " + timecard_id + " deleted");
+            }
+            else {
+               return bl.errorResponse("INTERNAL_SERVER_ERROR", "Timecard " + timecard_id + " failed to delete!");
+            }
+         }
+         else{
+            return bl.errorResponse("NOT_FOUND", " Timecard " + timecard_id + " not found!");
+         }
+      }
+      catch(Exception e){
+         return bl.errorResponse("ERROR", e.getMessage());
+      }
+      finally {
          dl.close();
       }
    }
