@@ -14,9 +14,11 @@ import javax.ws.rs.core.*;
 import javax.ws.rs.*;
 import java.text.*;
 
-
-
-
+/**
+* BusinessLayer
+* @author Brandon Mok
+* BL handles validation of user input
+*/
 public class BusinessLayer {
 
    // GSON to JSON builders
@@ -142,19 +144,19 @@ public class BusinessLayer {
     */
    public boolean validateDate(Date date){
       try{
-          boolean valid = false;
+         boolean valid = false;
             
-   		 DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-   		 String dateStr = df.format(date);
-   		 Date parsedDate = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
+   		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+   		String dateStr = df.format(date);
+   		Date parsedDate = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
    		 
-   		 // Calendar - Calendar for passed in date!
-   		 Calendar calendar = Calendar.getInstance(); 
-   		 calendar.setTime(parsedDate);
+   		// Calendar - Calendar for passed in date!
+   		Calendar calendar = Calendar.getInstance(); 
+   		calendar.setTime(parsedDate);
    		 
-   		 // Calendar - Current Calendar Date
-   		 Calendar currentCal = Calendar.getInstance();
-   		 Date currentDate = currentCal.getTime();  // Date OBJ for current date
+   		// Calendar - Current Calendar Date
+   		Calendar currentCal = Calendar.getInstance();
+   		Date currentDate = currentCal.getTime();  // Date OBJ for current date
    		 
          // # day of the week
          int day = calendar.get(Calendar.DAY_OF_WEEK);                     // #'ed day of the week (1-7)
@@ -170,10 +172,57 @@ public class BusinessLayer {
             valid = true;  
          }
    
-          return valid;            
+         return valid;            
       }
       catch(ParseException pe){
          // Error with parsing format - wrong entered format
+         return false;
+      }
+   }
+   
+   /**
+   * validateTimestamp
+   * @param Timestamp
+   * @return boolean
+   * Validates a given timestamp
+   */
+   public boolean validateTimestamp(int employeeID, Timestamp startTime, Timestamp endTime){
+      try{
+         // Create dateformat template -> format the timestamp to a string -> reformat back to timestamp by parsing 
+         // If anything goes wrong in between, then timestamp isn't in right format
+         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+         String startStr = df.format(startTime);
+         String endStr = df.format(endTime);
+         Timestamp start = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(startStr).getTime());  
+         Timestamp end = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(endStr).getTime());  
+         
+         // Start_time must be valid date and time equal to current day or 1 week ago from current date
+         Date startDate = new Date(start.getYear(), start.getDate(), start.getDay());
+         Date endDate = new Date(end.getYear(), end.getDate(), end.getDay());
+         
+         // Validate startDate & endDate - must be on a M-F basis
+         if(!this.validateDate(startDate) || !this.validateDate(endDate)){
+            return false;
+         }
+         
+         
+         // Time must be within 06:00:00 - 18:00:00
+         // If not return false, don't continue
+         if( !(start.getHours() >= 6 && start.getHours() <= 18) &&
+             !(end.getHours() >= 6 && start.getHours() <= 18) ){
+             return false;
+         }
+         
+         // Start_time cannot be on the same day as any other other start_time for that employee
+         List<Timecard> timeList = dl.getAllTimecard(employeeID);
+//          for (Timecard tCard : timeList){
+//             if(tCard.get
+//          }
+         
+         
+         return true;
+      }
+      catch(ParseException pe){
          return false;
       }
    }
@@ -221,69 +270,6 @@ public class BusinessLayer {
    }
    
    /**
-   * validateDeptNo
-   * @param String, String
-   * @return boolean
-   * Validates that a department Number doesn't already exist, so unique
-   */
-   public boolean validateDeptNo(String company, String dept_no){
-      boolean valid = true;
-      try{
-         dl = new DataLayer(company);
-         
-         // Get all departments for the company
-         List<Department> departmentsList = dl.getAllDepartment(company); 
-         
-         // Cycle through all to find if dept_no (company+dept_no) exists already as it needs to be unique
-         for (Department dep : departmentsList){
-            if(dep.getDeptNo() == dept_no){
-               valid = false;
-               break;
-            }
-         }
-         
-         return valid;    
-      }
-      catch(Exception e){
-         System.out.println(e);
-      }
-      finally{
-         dl.close();
-      }
-      return valid;
-   }
-   
-   /**
-   * validateDeptID
-   * @param String, int
-   * @return boolean
-   * Validates a department's ID to see if it already exists
-   */
-   public boolean validateDeptID(String company, int dept_id){
-      boolean valid = false;
-      try{
-         dl = new DataLayer(company);
-         
-         // Get a specific department based on company and ID to verify if it exists already or not
-         Department dep = dl.getDepartment(company, dept_id);
-              
-         // Valid only if a department wasn't returned!
-         // Doesn't exist yet
-         if(dep == null){
-            valid = true;
-         }
-         return valid;
-      }
-       catch(Exception e){
-         System.out.println(e);
-      }
-      finally{
-         dl.close();
-      }
-      return valid;
-   }
-   
-   /**
    * validateDepartment
    * @param Department, String, String
    * @return Department
@@ -308,7 +294,6 @@ public class BusinessLayer {
                   return null;
                }
             }
-
 
             // Validate - dept_no must be unique among from existing ones
             String dep_no = this.uniquePerCompany(dep.getDeptNo(), company);
@@ -445,18 +430,37 @@ public class BusinessLayer {
                   emp.setMngId(noManagerEmployee.getId());
                 }
              }
+             
 
              //emp_no
              //Use uniquePerCompany() which handles making emp_no unique
              String emp_no = this.uniquePerCompany(emp.getEmpNo(), company);
-             if(!this.notNull(emp_no)){ 
-               return null; 
+             for (Employee emply : employeeList){
+               if(emply.getEmpNo() == emp_no){
+                  // CHECK: which action
+                  // POST: Return null bc there's already an employee with the same emp_no
+                  // PUT: Employee object already exists, so make sure that the found employee is the same as one being modified (by function parameters)
+                  if(action.equals("POST")){
+                     return null;
+                  }
+                  else if (action.equals("PUT")){
+                     // if this employee object isn't the same as the one passed in function, BUT has the same emp_no
+                     // then something wrong
+                     if(emp.getId() != emply.getId()){
+                        return null;
+                     }
+                  }
+               }
              }
-			 else {
-				emp.setEmpNo(emp_no);
-			 }
-             
-             // emp_name + job
+                        
+             // If there wasn't an employee found with the uniquely created/modifed emp_no, 
+             // and the unique emp_no wasn't changed from validation compared to one entered by user
+             // set the object's emp_no to the uniquePerCompany()
+             if(emp_no != emp.getEmpNo()){
+               emp.setEmpNo(emp_no);
+             }
+
+             // if emp_name and job are both valid strings w/o numbers
              if(!validString(emp.getEmpName()) || !validString(emp.getJob())){
                return null;
              }
@@ -465,9 +469,7 @@ public class BusinessLayer {
              if(!validateDate(emp.getHireDate())){
                return null;
              }
-             
-             // salary
-             
+                          
             
             // lastly, return employee object whether null or not
             // Null => something invalid
@@ -485,8 +487,9 @@ public class BusinessLayer {
       }
       return emp;
    }
+
   
-   
+     
    
    
    /** ---------- TIMECARD  ---------- */ 
@@ -517,27 +520,60 @@ public class BusinessLayer {
    * @return Timecard
    * Validates that a timecard is valid before proceeding to a DL action
    */
-//    public Timecard validateTimecard(Timecard tc, String company, String action){
-//       try{
-//          if(this.validateCompany(company)){
-//             dl = new DataLayer(company);
-//             
-//             // emp_d most be an existing employee
-//             Employee emp = dl.getEmployee(tc.getEmpId());
-//             
-//          }
-//          else {
-//             // Not my company
-//             return null;
-//          }
-//       }
-//       catch(Exception e){
-//          System.out.println(e);
-//       }
-//       finally{
-//          dl.close();
-//       }
-//    }
+   public Timecard validateTimecard(Timecard tc, String company, String action){
+      try{
+         if(this.validateCompany(company)){
+            dl = new DataLayer(company);
+            
+            // emp_id most be an existing employee
+            Employee emp = dl.getEmployee(tc.getEmpId());
+            if(!this.notNull(emp)){
+               return null;
+            }
+            
+            // Validate Timecard for PUT and POST
+            Timecard timecard = dl.getTimecard(tc.getId());
+            if(action.equals("PUT")){
+               // On PUT, timecard needs to exist
+               // if timecard is null, then return null;
+               if(!this.notNull(timecard)){
+                  return null;
+               }
+            }
+            else if (action.equals("POST")){
+               // On POST, don't want timecard to already exist
+               // if timecard exists, then return null;
+               if(this.notNull(timecard)){
+                  return null;
+               }
+            }
+            
+
+            // Validate timestamps
+            Timestamp startTime = tc.getStartTime();
+            Timestamp endTime = tc.getEndTime();
+            
+            // If startTime and endTime didn't pass timestamp validation
+            if(!this.validateTimestamp(timecard.getEmpId() ,startTime, endTime)){
+               return null;
+            }
+  
+
+            return tc;
+         }
+         else {
+            // Not my company
+            return null;
+         }
+      }
+      catch(Exception e){
+         System.out.println(e);
+      }
+      finally{
+         dl.close();
+      }
+      return tc;
+   }
 
 
 }// end business layer

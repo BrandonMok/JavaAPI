@@ -3,9 +3,13 @@ package timecard;
 import companydata.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.*;
-// import java.util.List;
 import java.util.*;
 
+/**
+* CompanyServices
+* @author Brandon Mok
+* CS handles pathing and directs functionality of routes
+*/
 @Path("CompanyServices")
 public class CompanyServices {
 
@@ -346,7 +350,6 @@ public class CompanyServices {
             
             // VALIDATE the employee object
             Employee validatedEmp = bl.validateEmployee(emp, company, "POST");
-          
             if(bl.notNull(validatedEmp)){
                // perform DL insert
                // return JSON string of newly inserted employee
@@ -369,12 +372,13 @@ public class CompanyServices {
          dl.close();
       }
    }
+
    
 //    @Path("employee")
 //    @PUT
 //    @Produces(json)
-//    public Response updateEmployee(Employee emp){
-//       try{
+//    public Response updateEmployee(String employee){
+//      try{
 //          dl = new DataLayer(emp.getCompany()); // emp doesn't have a getCompany() 
 //    
 //          // validate employee
@@ -385,6 +389,7 @@ public class CompanyServices {
 //          else {
 //             return bl.errorResponse("");
 //          }
+//
 //       }
 //       catch(Exception e){
 //          return bl.errorResponse("ERROR", e.getMessage());
@@ -392,7 +397,8 @@ public class CompanyServices {
 //       finally {
 //          dl.close();
 //       }
-//    }
+//     }
+
    
    @Path("employee")
    @DELETE
@@ -552,6 +558,25 @@ public class CompanyServices {
 //    }
 
 
+/**
+   @Path("timecard")
+   @PUT
+   @Produces(json)
+   public Response updateTimecard(){
+      try {
+         // dl = new DataLayer();
+      }
+      catch(Exception e){
+         return bl.errorResponse("ERROR", e.getMessage());
+      }
+      finally {
+         dl.close();
+      }
+   }
+
+*/
+
+
    @Path("timecard")
    @DELETE
    @Produces(json)
@@ -574,7 +599,7 @@ public class CompanyServices {
                }
             }
             else{
-               return bl.errorResponse("NOT_FOUND", " Timecard " + timecard_id + " not found!");
+               return bl.errorResponse("NOT_FOUND", " Timecard " + timecard_id + " cannot be deleted as it's found!");
             }
          }
          else {
