@@ -200,21 +200,45 @@ public class BusinessLayer {
          Date startDate = new Date(start.getYear(), start.getDate(), start.getDay());
          Date endDate = new Date(end.getYear(), end.getDate(), end.getDay());
          
+         // Calendar for start & end - used to compare and validate that end_time is on same day and > 1 hour than start
+         Calendar startCal = Calendar.getInstance(); 
+         Calendar endCal = Calendar.getInstance(); 
+   		startCal.setTime(startDate);
+         endCal.setTime(endDate);
+         
+         
+         
          // Validate startDate & endDate - must be on a M-F basis
          if(!this.validateDate(startDate) || !this.validateDate(endDate)){
             return false;
          }
          
+         // start_time must be a valid date and time equal to the current date or up to 1 week ago from the current date
+         Calendar c = Calendar.getInstance();
+         c.set(Calendar.DATE, c.get(Calendar.DATE)-7);   // check timestamp from a week or go
+         Timestamp currTs = new Timestamp(System.currentTimeMillis());  // get current timestamp
+         // if start_time equals != current time/date OR != equals that from a week or go
+         if(!start.equals(currTs) || !start.equals(c.getTime())){
+            return false;
+         }
          
+         // end_time needs to be on the same day as start_Time and at least 1 hour greater than start_time
+         // IF it made it past the this.validateDate() then format is fine, so proceed
+         // if NOT on the same day OR endDate is before the starting date OR startDate is greater than endDate an hour after startDate
+         if(!endDate.equals(startDate) || endDate.before(startDate) || startDate.getHours() >=  endDate.getHours() + 1){
+            return false;
+         }
+
+            
          // Time must be within 06:00:00 - 18:00:00
          // If not return false, don't continue
-         if( !(start.getHours() >= 6 && start.getHours() <= 18) &&
+         if( !(start.getHours() >= 6 && start.getHours() <= 18) ||
              !(end.getHours() >= 6 && start.getHours() <= 18) ){
              return false;
          }
          
          // Start_time cannot be on the same day as any other other start_time for that employee
-         List<Timecard> timeList = dl.getAllTimecard(employeeID);
+//         List<Timecard> timeList = dl.getAllTimecard(employeeID);
 //          for (Timecard tCard : timeList){
 //             if(tCard.get
 //          }
