@@ -197,8 +197,8 @@ public class BusinessLayer {
          Timestamp end = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(endStr).getTime());  
          
          // Start_time must be valid date and time equal to current day or 1 week ago from current date
-         Date startDate = new Date(start.getYear(), start.getDate(), start.getDay());
-         Date endDate = new Date(end.getYear(), end.getDate(), end.getDay());
+         Date startDate = new Date(start.getTime());
+         Date endDate = new Date(end.getTime());
          
          // Calendar for start & end - used to compare and validate that end_time is on same day and > 1 hour than start
 //          Calendar startCal = Calendar.getInstance(); 
@@ -232,7 +232,7 @@ public class BusinessLayer {
          // Time must be within 06:00:00 - 18:00:00
          // If not return false, don't continue
          if( !(start.getHours() >= 6 && start.getHours() <= 18) ||
-             !(end.getHours() >= 6 && start.getHours() <= 18) ){
+             !(end.getHours() >= 6 && end.getHours() <= 18) ){
              return false;
          }
          
@@ -578,7 +578,7 @@ public class BusinessLayer {
             Timestamp endTime = tc.getEndTime();
             
             // If startTime and endTime didn't pass timestamp validation
-            if(!this.validateTimestamp(timecard.getEmpId() ,startTime, endTime)){
+            if(!this.validateTimestamp(timecard.getEmpId(), startTime, endTime)){
                return null;
             }
 
