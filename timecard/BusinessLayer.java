@@ -201,12 +201,11 @@ public class BusinessLayer {
          Date endDate = new Date(end.getYear(), end.getDate(), end.getDay());
          
          // Calendar for start & end - used to compare and validate that end_time is on same day and > 1 hour than start
-         Calendar startCal = Calendar.getInstance(); 
-         Calendar endCal = Calendar.getInstance(); 
-   		startCal.setTime(startDate);
-         endCal.setTime(endDate);
-         
-         
+//          Calendar startCal = Calendar.getInstance(); 
+//          Calendar endCal = Calendar.getInstance(); 
+//    		startCal.setTime(startDate);
+//          endCal.setTime(endDate);
+
          
          // Validate startDate & endDate - must be on a M-F basis
          if(!this.validateDate(startDate) || !this.validateDate(endDate)){
@@ -238,13 +237,15 @@ public class BusinessLayer {
          }
          
          // Start_time cannot be on the same day as any other other start_time for that employee
-//         List<Timecard> timeList = dl.getAllTimecard(employeeID);
-//          for (Timecard tCard : timeList){
-//             if(tCard.get
-//          }
+         List<Timecard> timeList = dl.getAllTimecard(employeeID);
+         for (Timecard tCard : timeList){
+            if(tCard.getStartTime() == start){
+               return false;  // Can't have another timecard with the same starttime 
+            }
+         }
          
          
-         return true;
+         return true;   // if false wasn't returned, true will be returned
       }
       catch(ParseException pe){
          return false;
@@ -570,8 +571,7 @@ public class BusinessLayer {
                if(this.notNull(timecard)){
                   return null;
                }
-            }
-            
+            }   
 
             // Validate timestamps
             Timestamp startTime = tc.getStartTime();
@@ -581,7 +581,6 @@ public class BusinessLayer {
             if(!this.validateTimestamp(timecard.getEmpId() ,startTime, endTime)){
                return null;
             }
-  
 
             return tc;
          }

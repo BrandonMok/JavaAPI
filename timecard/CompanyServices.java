@@ -514,48 +514,48 @@ public class CompanyServices {
       }
    }
    
-//    @Path("timecard")
-//    @POST
-//    @Produces(json)
-//    public Response insertTimecard(
-//       @FormParam("company") String company,
-//       @FormParam("emp_id") int emp_id,
-//       @FormParam("start_time") java.sql.Timestamp start_time,
-//       @FormParam("end_time") java.sql.Timestamp end_time,
-//       @FormParam("timecard_id") int timecard_id
-//    ){
-//       try {
-//          dl = new DataLayer(company);
-//          
-//          Timecard tc = null;
-//          if(bl.notNull(timecard_id)){
-//             tc = new Timecard(timecard_id, start_time, end_time, emp_id);
-//          }
-//          else {
-//             tc = new Timecard(start_time, end_time, emp_id);
-//          }
-//          
-//          Timecard validTimecard = bl.validateTimecard(tc, company, "POST");
-//          
-//          
-//          if(bl.notNull(validTimecard)){
-//             // perform DL insert
-//             // return JSON string of newly inserted employee
-//             validTimecard = dl.insertEmployee(validTimecard);
-//             return bl.ok(bl.timecardToJSON(validTimecard));
-//          }
-//          else {
-//             // return error Response
-//             return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input!");
-//          } 
-//       }
-//       catch(Exception e){
-//          return bl.errorResponse("ERROR", e.getMessage());
-//       }
-//       finally {
-//          dl.close();
-//       }
-//    }
+   @Path("timecard")
+   @POST
+   @Produces(json)
+   public Response insertTimecard(
+      @FormParam("company") String company,
+      @FormParam("emp_id") int emp_id,
+      @FormParam("start_time") java.sql.Timestamp start_time,
+      @FormParam("end_time") java.sql.Timestamp end_time,
+      @FormParam("timecard_id") int timecard_id
+   ){
+      try {
+         dl = new DataLayer(company);
+         
+         Timecard tc = null;
+         if(bl.notNull(timecard_id)){
+            tc = new Timecard(timecard_id, start_time, end_time, emp_id);
+         }
+         else {
+            tc = new Timecard(start_time, end_time, emp_id);
+         }
+         
+         Timecard validTimecard = bl.validateTimecard(tc, company, "POST");    
+         
+         if(bl.notNull(validTimecard)){
+            // perform DL insert
+            // return JSON string of newly inserted employee
+            validTimecard = dl.insertTimecard(validTimecard);
+            return bl.ok(bl.timecardToJSON(validTimecard));
+         }
+         else {
+            // return error Response
+            return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input!");
+         } 
+      }
+      catch(Exception e){
+         return bl.errorResponse("ERROR", e.getMessage());
+      }
+      finally {
+         dl.close();
+      }
+   }
+
 
 
 /**
