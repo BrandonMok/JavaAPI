@@ -4,6 +4,7 @@ import companydata.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.*;
 import java.util.*;
+import com.google.gson.*;
 
 /**
 * CompanyServices
@@ -15,6 +16,9 @@ public class CompanyServices {
 
    @Context
    UriInfo uriInfo;
+   
+   GsonBuilder builder = new GsonBuilder();
+   Gson gson = builder.create();
    
    // Data Layer
    DataLayer dl = null;
@@ -183,32 +187,94 @@ public class CompanyServices {
       }
    }
    
-/**   
+
    @Path("department")
    @PUT
-   @Consumes(json)
-   @Produces(json)
-   public Response updateDepartment(Department dep){
-      try{
-         if(bl.validateCompany(dep.getCompany()){
-            dl = new DataLayer(dep.getCompany());
-            
-            // 1) ID needs to be an existing one - look for it if exists
-            // 2) Dept_No needs to be unique!   - will be in the list so do check to add bxm5989 + dep_no
-            
+   @Consumes("application/json")
+   @Produces("application/json")
+   public Response updateDepartment(String json){   
+     try{
+         JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();     
+         Set<String> keys = jsonObject.keySet();
+         
+         // CHECK: if company and dept_id were at least passed
+         if(keys.contains("company") && keys.contains("dept_id")){
+              String company = jsonObject.get("company").toString();
+              String dept_id = jsonObject.get("dept_id").toString();
+              
+              // CHECK: if the entered company is mine
+              if(bl.validateCompany(company)){
+                  dl = new DataLayer(company); 
+                  
+//                   Map<String, String> allOtherVals = new HashMap<>();
+//                   allOtherVals.put(eachKey, jsonObject.get(eachKey).toString()); 
+
+                  /**
+                  * Get Department to first see if it exists
+                  * Then use department setters to change values
+                  * Call validateDepartment which will handle uniqueness and validate inputs
+                  * If all good, then perform update 
+                  */
+                  Department dep = dl.getDepartment(company, Integer.parseInt(dept_id));
+                  
+                  if(bl.notNull(dep)){                  
+                     for(String eachKey : keys){
+                        if(!eachKey.equals("company") || !eachKey.equals("dept_id")){
+                           switch(eachKey.toLowerCase()){
+                              case "dept_name":
+                                 dep.setDeptName(jsonObject.get(eachKey).toString());
+                                 break;
+                              case "dept_no":
+                                 dep.setDeptNo(jsonObject.get(eachKey).toString());
+                                 break;
+                              case "location":
+                                 dep.setLocation(jsonObject.get(eachKey).toString());
+                                 break;
+                           }
+                        }
+                     } 
+
+                     // Validate updated department object
+                     Department validDep = bl.validateDepartment(dep, company, "PUT");
+                     
+                     // If the passed in department object passed validation it won't be null
+                     if(bl.notNull(validDep)){
+                        // Make sure that the returned Department from the Data Layer update method isn't null
+                        if(bl.notNull(dl.updateDepartment(validDep))){  
+                           return bl.ok(bl.departmentToJSON(validDep));    // Successful update!
+                        }
+                        else {
+                           return bl.errorResponse("BAD_REQUEST", " Update failed on provided inputs!");
+                        }
+                     }
+                     else {
+                        return bl.errorResponse("BAD_REQUEST", " Invalid field(s) on update!");
+                     }
+                  }
+                  else {
+                     return bl.errorResponse("NOT_FOUND", " Department " + dept_id + " not found!");
+                  }                
+              }
+               else {
+                  return bl.errorResponse("BAD_REQUEST", "BBAD");
+                  //return bl.errorResponse("BAD_REQUEST", " Cannot update department " + dep.getId() + " for company " + dep.getCompany() + "!");
+               }     
          }
-         else {
-            return bl.errorResponse("BAD_REQUEST", " Cannot update department " + dep.getId() + " for company " + dep.getCompany() + "!");
-         }   
+         else{
+            // User input doesn't have company or dept_id - don't proceed!
+            return bl.errorResponse("BAD_REQUEST", " Company and/or dept_id not entered for update of department!");
+         }  
       }
       catch(Exception e){
          return bl.errorResponse("ERROR", e.getMessage());
       }
       finally{
-         dl.close();
+         if(bl.notNull(dl)){
+            dl.close();
+         }
       }
    }
-*/
+
    
    @Path("department")
    @DELETE
@@ -562,8 +628,9 @@ public class CompanyServices {
    @Path("timecard")
    @PUT
    @Produces(json)
-   public Response updateTimecard(){
+   public Response updateTimecard(String json){
       try {
+         // JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
          // dl = new DataLayer();
       }
       catch(Exception e){

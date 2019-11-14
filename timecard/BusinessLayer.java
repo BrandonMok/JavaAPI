@@ -191,21 +191,18 @@ public class BusinessLayer {
          // Create dateformat template -> format the timestamp to a string -> reformat back to timestamp by parsing 
          // If anything goes wrong in between, then timestamp isn't in right format
          DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-         String startStr = df.format(startTime);
-         String endStr = df.format(endTime);
-         Timestamp start = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(startStr).getTime());  
-         Timestamp end = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(endStr).getTime());  
+         Timestamp start = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(df.format(startTime)).getTime());  
+         Timestamp end = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(df.format(endTime)).getTime());  
          
          // Start_time must be valid date and time equal to current day or 1 week ago from current date
          Date startDate = new Date(start.getTime());
          Date endDate = new Date(end.getTime());
          
-         // Calendar for start & end - used to compare and validate that end_time is on same day and > 1 hour than start
-//          Calendar startCal = Calendar.getInstance(); 
-//          Calendar endCal = Calendar.getInstance(); 
-//    		startCal.setTime(startDate);
-//          endCal.setTime(endDate);
-
+         Calendar startCal = Calendar.getInstance();
+         Calendar endCal = Calendar.getInstance();
+         startCal.setTime(startDate);
+         endCal.setTime(endDate);
+         
          
          // Validate startDate & endDate - must be on a M-F basis
          if(!this.validateDate(startDate) || !this.validateDate(endDate)){
@@ -213,29 +210,39 @@ public class BusinessLayer {
          }
          
          // start_time must be a valid date and time equal to the current date or up to 1 week ago from the current date
+         SimpleDateFormat dateOnly = new SimpleDateFormat("yyyy-MM-dd");
          Calendar c = Calendar.getInstance();
          c.set(Calendar.DATE, c.get(Calendar.DATE)-7);   // check timestamp from a week or go
-         Timestamp currTs = new Timestamp(System.currentTimeMillis());  // get current timestamp
-         // if start_time equals != current time/date OR != equals that from a week or go
-         if(!start.equals(currTs) || !start.equals(c.getTime())){
+         Date pastDate = c.getTime();
+         
+         // CURRENT
+         Calendar today = Calendar.getInstance();
+         Date todayDate = today.getTime();   
+         
+         // start cannot be the after today AND cannot be before at most a week ago!  ( [1 week ago - today] )
+         if(start.after(todayDate) || start.before(pastDate)){  
             return false;
          }
          
          // end_time needs to be on the same day as start_Time and at least 1 hour greater than start_time
          // IF it made it past the this.validateDate() then format is fine, so proceed
          // if NOT on the same day OR endDate is before the starting date OR startDate is greater than endDate an hour after startDate
-         if(!endDate.equals(startDate) || endDate.before(startDate) || startDate.getHours() >=  endDate.getHours() + 1){
+         if( (startCal.get(Calendar.DAY_OF_MONTH) != endCal.get(Calendar.DAY_OF_MONTH)) || 
+              (startCal.get(Calendar.YEAR) != endCal.get(Calendar.YEAR)) ||
+              (startCal.get(Calendar.DATE) != endCal.get(Calendar.DATE)) || 
+              endDate.before(startDate) || startDate.getHours() > endDate.getHours() + 1){
             return false;
          }
-
-            
+    
          // Time must be within 06:00:00 - 18:00:00
          // If not return false, don't continue
-         if( !(start.getHours() >= 6 && start.getHours() <= 18) ||
-             !(end.getHours() >= 6 && end.getHours() <= 18) ){
-             return false;
+         if( (start.getHours() < 6 || start.getHours() > 18) ||   
+             (end.getHours() < 6 || end.getHours() > 18) ||
+             (start.getHours() == end.getHours())){ 
+             return false;   
          }
          
+          
          // Start_time cannot be on the same day as any other other start_time for that employee
          List<Timecard> timeList = dl.getAllTimecard(employeeID);
          for (Timecard tCard : timeList){
@@ -244,8 +251,7 @@ public class BusinessLayer {
             }
          }
          
-         
-         return true;   // if false wasn't returned, true will be returned
+        return true;   // if false wasn't returned, true will be returned
       }
       catch(ParseException pe){
          return false;
@@ -578,7 +584,7 @@ public class BusinessLayer {
             Timestamp endTime = tc.getEndTime();
             
             // If startTime and endTime didn't pass timestamp validation
-            if(!this.validateTimestamp(timecard.getEmpId(), startTime, endTime)){
+            if(!this.validateTimestamp(tc.getEmpId(), startTime, endTime)){
                return null;
             }
 
@@ -595,7 +601,8 @@ public class BusinessLayer {
       finally{
          dl.close();
       }
-      return tc;
+ 
+      return null;
    }
 
 
