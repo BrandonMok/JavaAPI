@@ -135,6 +135,15 @@ public class BusinessLayer {
       }
       return unique;
    }
+   
+   /**
+    * stringToDate
+    * @param String
+    * @return Date
+    */
+   public java.sql.Date stringToDate(String date){
+      return java.sql.Date.valueOf(date);
+   }
 
    /**
     * validateDate

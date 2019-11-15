@@ -199,7 +199,6 @@ public class CompanyServices {
          
          // CHECK: if company and dept_id were at least passed
          if(keys.contains("company") && keys.contains("dept_id")){
-              // String company = jsonObject.get("company").toString().trim();
               String company = jsonObject.get("company").getAsString();
               String dept_id = jsonObject.get("dept_id").getAsString();
               
@@ -431,30 +430,91 @@ public class CompanyServices {
    }
 
    
-//    @Path("employee")
-//    @PUT
-//    @Produces(json)
-//    public Response updateEmployee(String employee){
-//      try{
-//          dl = new DataLayer(emp.getCompany()); // emp doesn't have a getCompany() 
-//    
-//          // validate employee
-//          Employee validatedEmp = bl.validateEmployee(emp, emp.getCompany(), "PUT");
-//          if(bl.notNull(validatedEmp)){
-//             return bl.ok(bl.employeeToJSON(validatedEmp));
-//          }
-//          else {
-//             return bl.errorResponse("");
-//          }
-//
-//       }
-//       catch(Exception e){
-//          return bl.errorResponse("ERROR", e.getMessage());
-//       }
-//       finally {
-//          dl.close();
-//       }
-//     }
+   @Path("employee")
+   @PUT
+   @Consumes("application/json")
+   @Produces("application/json")
+   public Response updateEmployee(String json){
+     try{
+        JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+        Set<String> keys = jsonObject.keySet();
+         
+        // CHECK: if company and emp_id were passed
+        if(keys.contains("company") && keys.contains("emp_id")){
+           String company = jsonObject.get("company").getAsString();
+           int emp_id = jsonObject.get("emp_id").getAsInt();
+           
+           // CHECK: if entered company is MINE
+           if(bl.validateCompany(company)){
+               dl = new DataLayer(company);
+               
+               Employee employee = dl.getEmployee(emp_id);
+               if(bl.notNull(employee)){
+                  for(String eachKey : keys){
+                     if(!eachKey.equals("company") || !eachKey.equals("emp_id")){
+                        switch(eachKey.toLowerCase()){
+                           case "emp_name":
+                              employee.setEmpName(jsonObject.get(eachKey).getAsString());
+                              break;
+                           case "emp_no":
+                              employee.setEmpNo(jsonObject.get(eachKey).getAsString());
+                              break;
+                           case "hire_date":
+                              java.sql.Date hDate = bl.stringToDate(jsonObject.get(eachKey).getAsString());   
+                              employee.setHireDate(hDate);
+                              break;
+                           case "job":
+                              employee.setJob(jsonObject.get(eachKey).getAsString());
+                              break;
+                           case "salary":
+                              employee.setSalary(jsonObject.get(eachKey).getAsDouble());
+                              break;
+                           case "dept_id":
+                              employee.setDeptId(jsonObject.get(eachKey).getAsInt());
+                              break;
+                           case "mng_id":
+                              employee.setMngId(jsonObject.get(eachKey).getAsInt());
+                              break;
+                        }
+                     }
+                  }
+                  
+                  // Validate updated Employee object
+                  employee = bl.validateEmployee(employee, company, "PUT");
+                  if(bl.notNull(employee)){
+                     // Make sure that the returned Employee from the Data Layer update method isn't null
+                     if(bl.notNull(dl.updateEmployee(employee))){
+                        return bl.ok(bl.employeeToJSON(employee));
+                     }
+                     else {
+                        return bl.errorResponse("BAD_REQUEST", " Update failed on employee!");
+                     }
+                  }
+                  else {
+                     return bl.errorResponse("BAD_REQUEST", "Invalid field(s) and/or missing company and employee ID");
+                  }
+               }
+               else {
+                  return bl.errorResponse("NOT_FOUND", " Employee " + emp_id + " not found for company " + company);
+               }
+           }
+           else {
+               return bl.errorResponse("BAD_REQUEST", " Cannot update employee " + emp_id + " for company " + company + "!");
+           }        
+        }
+        else {
+            return bl.errorResponse("BAD_REQUEST", " Invalid and/or missing company and employee ID!");
+        }           
+      }
+      catch(Exception e){
+         return bl.errorResponse("ERROR", e.getMessage());
+      }
+      finally {
+         if(bl.notNull(dl)){
+            dl.close();
+         }
+      }
+    }
 
    
    @Path("employee")
