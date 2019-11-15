@@ -199,22 +199,14 @@ public class CompanyServices {
          
          // CHECK: if company and dept_id were at least passed
          if(keys.contains("company") && keys.contains("dept_id")){
-              String company = jsonObject.get("company").toString();
-              String dept_id = jsonObject.get("dept_id").toString();
+              // String company = jsonObject.get("company").toString().trim();
+              String company = jsonObject.get("company").getAsString();
+              String dept_id = jsonObject.get("dept_id").getAsString();
               
               // CHECK: if the entered company is mine
               if(bl.validateCompany(company)){
                   dl = new DataLayer(company); 
-                  
-//                   Map<String, String> allOtherVals = new HashMap<>();
-//                   allOtherVals.put(eachKey, jsonObject.get(eachKey).toString()); 
 
-                  /**
-                  * Get Department to first see if it exists
-                  * Then use department setters to change values
-                  * Call validateDepartment which will handle uniqueness and validate inputs
-                  * If all good, then perform update 
-                  */
                   Department dep = dl.getDepartment(company, Integer.parseInt(dept_id));
                   
                   if(bl.notNull(dep)){                  
@@ -222,26 +214,26 @@ public class CompanyServices {
                         if(!eachKey.equals("company") || !eachKey.equals("dept_id")){
                            switch(eachKey.toLowerCase()){
                               case "dept_name":
-                                 dep.setDeptName(jsonObject.get(eachKey).toString());
+                                 dep.setDeptName(jsonObject.get(eachKey).getAsString());
                                  break;
                               case "dept_no":
-                                 dep.setDeptNo(jsonObject.get(eachKey).toString());
+                                 dep.setDeptNo(jsonObject.get(eachKey).getAsString());
                                  break;
                               case "location":
-                                 dep.setLocation(jsonObject.get(eachKey).toString());
+                                 dep.setLocation(jsonObject.get(eachKey).getAsString());
                                  break;
                            }
                         }
                      } 
 
                      // Validate updated department object
-                     Department validDep = bl.validateDepartment(dep, company, "PUT");
+                     dep = bl.validateDepartment(dep, company, "PUT");
                      
                      // If the passed in department object passed validation it won't be null
-                     if(bl.notNull(validDep)){
+                     if(bl.notNull(dep)){
                         // Make sure that the returned Department from the Data Layer update method isn't null
-                        if(bl.notNull(dl.updateDepartment(validDep))){  
-                           return bl.ok(bl.departmentToJSON(validDep));    // Successful update!
+                        if(bl.notNull(dl.updateDepartment(dep))){  
+                           return bl.ok(bl.departmentToJSON(dep));    // Successful update!
                         }
                         else {
                            return bl.errorResponse("BAD_REQUEST", " Update failed on provided inputs!");
@@ -255,10 +247,9 @@ public class CompanyServices {
                      return bl.errorResponse("NOT_FOUND", " Department " + dept_id + " not found!");
                   }                
               }
-               else {
-                  return bl.errorResponse("BAD_REQUEST", "BBAD");
-                  //return bl.errorResponse("BAD_REQUEST", " Cannot update department " + dep.getId() + " for company " + dep.getCompany() + "!");
-               }     
+              else {
+                  return bl.errorResponse("BAD_REQUEST", " Cannot update department " + dept_id + " for company " + company + "!");
+              }     
          }
          else{
             // User input doesn't have company or dept_id - don't proceed!
