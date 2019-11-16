@@ -105,12 +105,13 @@ public class BusinessLayer {
     * @param List<Object>
     * @return boolean
     * Validates that a list of input fields from user aren't null
+    * Used in POST cases where all fields are required to be entered!
     */
    public boolean inputFieldsNotNull(List<Object> fieldsList){
       boolean valid = true;
       
       for (Object obj : fieldsList){
-         if(obj instanceof Integer){
+         if((obj instanceof Integer)){
             if((int)obj == 0){
                valid = false;
                break;
@@ -128,8 +129,8 @@ public class BusinessLayer {
                break;
             }
          }
-         else if(obj instanceof java.sql.Date){
-            if((Date)obj == null){
+         else if((obj instanceof java.sql.Date) || (obj instanceof java.sql.Timestamp)){
+            if(obj == null){
                valid = false;
                break;
             }

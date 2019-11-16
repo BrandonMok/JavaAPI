@@ -358,12 +358,17 @@ public class CompanyServices {
                List<Employee> employeeList = dl.getAllEmployee(company);
                List<String> employees = new ArrayList<String>();
                
-               for(int i = 0; i < employeeList.size(); i++){
-                  employees.add(bl.employeeToJSON(employeeList.get(i)));
+               if(employeeList.size() > 0){
+                  for(int i = 0; i < employeeList.size(); i++){
+                     employees.add(bl.employeeToJSON(employeeList.get(i)));
+                  }
+                  
+                  // Return OK 
+                  return bl.ok(employees);
                }
-               
-               // Return OK 
-               return bl.ok(employees);
+               else {
+                  return bl.errorResponse("NOT_FOUND", " No employees found!");
+               }
             }
             else {
                return bl.errorResponse("BAD_REQUEST", " Company " + company + " entered is invalid!");
@@ -715,7 +720,14 @@ public class CompanyServices {
       @FormParam("timecard_id") int timecard_id
    ){
       try {
-         if(bl.notNull(company) && timecard_id != 0){
+         List<Object> fieldsList = new ArrayList<>();
+            fieldsList.add(company);
+            fieldsList.add(emp_id);
+            fieldsList.add(start_time);
+            fieldsList.add(end_time);
+      
+         // CHECK: input fields were all entered (timecard_id not necessary)
+         if(bl.inputFieldsNotNull(fieldsList)){
             if(bl.validateCompany(company)){
                dl = new DataLayer(company);
                
@@ -764,8 +776,8 @@ public class CompanyServices {
    @Produces(json)
    public Response updateTimecard(String json){
       try {
-         // JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
-         // dl = new DataLayer();
+         JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+         
       }
       catch(Exception e){
          return bl.errorResponse("ERROR", e.getMessage());
@@ -805,7 +817,6 @@ public class CompanyServices {
                }
             }
             else {
-               // Not my company, don't allow
                return bl.errorResponse("BAD_REQUEST", " Company " + company + " entered is invalid!");
             }
          }
