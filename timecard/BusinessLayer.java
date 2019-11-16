@@ -4,15 +4,12 @@ import companydata.*;
 import com.google.gson.*;
 import java.util.*;
 import java.net.*;
+import java.text.*;
 import org.apache.commons.io.*;
 import java.nio.charset.StandardCharsets;
-// import java.util.List;
-// import java.util.Calendar;
-// import java.util.Date;
 import java.sql.Timestamp;
 import javax.ws.rs.core.*;
 import javax.ws.rs.*;
-import java.text.*;
 
 /**
 * BusinessLayer
