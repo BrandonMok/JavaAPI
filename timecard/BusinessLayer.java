@@ -449,7 +449,7 @@ public class BusinessLayer {
              }
              else {
                 boolean existingEmp = false;
-                Employee noManagerEmployee = null;
+                Employee tempEmployee = null;
              
                 for (Employee employ : employeeList){
                   // Verify that the entered mng_id is the emp_id of an existing employee
@@ -460,14 +460,20 @@ public class BusinessLayer {
                   // Also watchout at the same time if an employee who doesn't have a manager, save that employee for next if
                   // Prevents having to do two iterations over same list if first condition didn't find anything
                   if(employ.getMngId() == 0){
-                     noManagerEmployee = employ;
+                     tempEmployee = employ;
                   }
                 } 
                 
-                // if existingEmp was never found, set to 0
+                // Employee who's mng_id entered isn't an existing employee
+                // Set to an existing manager
                 if(!existingEmp){
+                  // In case of a PUT, if mng_id doesn't match an existing employee's emp_id (employee DNE), then error out
+                  if(action.equals("PUT")){
+                     return null;
+                  }
+                
                   // set employee's mng_id to an employee who doesn't have a manager
-                  emp.setMngId(noManagerEmployee.getId());
+                  emp.setMngId(tempEmployee.getId());
                 }
              }
              
