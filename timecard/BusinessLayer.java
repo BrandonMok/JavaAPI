@@ -100,6 +100,45 @@ public class BusinessLayer {
       return notNull;
    }
    
+   /*
+    * inputFieldsNotNull
+    * @param List<Object>
+    * @return boolean
+    * Validates that a list of input fields from user aren't null
+    */
+   public boolean inputFieldsNotNull(List<Object> fieldsList){
+      boolean valid = true;
+      
+      for (Object obj : fieldsList){
+         if(obj instanceof Integer){
+            if((int)obj == 0){
+               valid = false;
+               break;
+            }
+         }
+         else if(obj instanceof Double){
+            if((Double)obj == 0.0){
+               valid = false; 
+               break;
+            }
+         }
+         else if(obj instanceof String){
+            if(!this.notNull((String)obj)){
+               valid = false;
+               break;
+            }
+         }
+         else if(obj instanceof java.sql.Date){
+            if((Date)obj == null){
+               valid = false;
+               break;
+            }
+         }
+      }
+      
+      return valid;
+   }
+   
    /**
    * validateCompany
    * @param String
@@ -134,6 +173,17 @@ public class BusinessLayer {
          unique = "";
       }
       return unique;
+   }
+   
+   /**
+    * closeDL
+    * @param DataLayer
+    * Closes the datalayer object passed in if it existed
+    */
+   public void closeDL(DataLayer dl){
+      if(this.notNull(dl)){
+         dl.close();
+      }
    }
    
    /**
