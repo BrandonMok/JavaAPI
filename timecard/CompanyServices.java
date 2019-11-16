@@ -4,6 +4,8 @@ import companydata.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.*;
 import java.util.*;
+import java.text.*;
+import java.sql.Timestamp;
 import com.google.gson.*;
 
 /**
@@ -768,16 +770,72 @@ public class CompanyServices {
       }
    }
 
-
-
-/**
    @Path("timecard")
    @PUT
-   @Produces(json)
+   @Consumes("application/json")
+   @Produces("application/json")
    public Response updateTimecard(String json){
       try {
          JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
+         Set<String> keys = jsonObject.keySet();
          
+         // CHECK: if company and timecard_id were at least passed
+         if(keys.contains("company") && keys.contains("timecard_id")){
+            String company = jsonObject.get("company").getAsString();
+            int timecard_id = jsonObject.get("timecard_id").getAsInt();
+            
+            // CHECK: company entered is mine!
+            if(bl.validateCompany(company)){
+               dl = new DataLayer(company);
+               
+               // Get the timecard for the entered ID
+               Timecard tc = dl.getTimecard(timecard_id);
+               if(bl.notNull(tc)){
+                  DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                  for(String eachKey : keys){
+                     if(!eachKey.equals("company") || !eachKey.equals("timecard_id")){
+                        switch(eachKey.toLowerCase()){
+                           case "start_time":
+                              Timestamp start_time = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(jsonObject.get(eachKey).getAsString()).getTime());    
+                              tc.setStartTime(start_time);
+                              break;
+                           case "end_time":
+                              Timestamp end_time = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(jsonObject.get(eachKey).getAsString()).getTime());    
+                              tc.setEndTime(end_time);
+                              break;
+                           case "emp_id":
+                              tc.setEmpId(jsonObject.get(eachKey).getAsInt());
+                              break;
+                        }
+                     }  
+                  }
+                  
+                  // validate updated Timecard object
+                  tc = bl.validateTimecard(tc, company, "PUT");
+                  if(bl.notNull(tc)){
+                     if(bl.notNull(dl.updateTimecard(tc))){
+                        return bl.ok(bl.timecardToJSON(tc));
+                     }
+                     else {
+                        return bl.errorResponse("BAD_REQUEST", " Update failed on timecard!");
+                     }
+                  }
+                  else {
+                     return bl.errorResponse("BAD_REQUEST"," Invalid field(s) and/or missing company and timecard_id");
+                  }        
+               }
+               else {
+                  return bl.errorResponse("NOT_FOUND", " Timecard " + timecard_id + " not found!");
+               }  
+            }
+            else {
+               return bl.errorResponse("BAD_REQUEST", " Company " + company + " entered is invalid!");
+            } 
+         }
+         else{
+            // User input doesn't have company or timecard_id - don't proceed!
+            return bl.errorResponse("BAD_REQUEST", " Company and/or timecard_id not entered!");
+         }         
       }
       catch(Exception e){
          return bl.errorResponse("ERROR", e.getMessage());
@@ -786,8 +844,6 @@ public class CompanyServices {
          bl.closeDL(dl);
       }
    }
-
-*/
 
 
    @Path("timecard")
