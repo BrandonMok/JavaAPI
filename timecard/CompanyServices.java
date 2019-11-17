@@ -15,9 +15,6 @@ import com.google.gson.*;
 */
 @Path("CompanyServices")
 public class CompanyServices {
-
-   @Context
-   UriInfo uriInfo;
    
    // GSON 
    GsonBuilder builder = new GsonBuilder();
@@ -84,23 +81,27 @@ public class CompanyServices {
    @Path("departments")
    @GET
    @Produces(json)
-   public Response getAllDepartment(@QueryParam("company") String company){
+   public Response getAllDepartment(
+      @QueryParam("company") String company
+   ){
       try {
+         // CHECK: Company was entered
          if(bl.notNull(company)){
-            if(bl.validateCompany(company)){
+            // CHECK: Entered company is mine!
+            if(bl.validateCompany(company)){ 
                dl = new DataLayer(company);
                
                // Get all departments from datalayer
                List<Department> departmentsList = dl.getAllDepartment(company);
                List<String> departments = new ArrayList<String>();
                
+               // CHECK: There are departments available
                if(departmentsList.size() > 0){               
+                  // Iterate through list, convert each department into a JSON string, add to different list, return that list
                   for(int i = 0; i < departmentsList.size(); i++){
                      departments.add(bl.departmentToJSON(departmentsList.get(i)));
                   }
-                  
-                  // return OK
-                  return bl.ok(departments);
+                  return bl.ok(departments); // return converted list!
                }
                else {
                   // ERROR: There are no departments
@@ -108,11 +109,12 @@ public class CompanyServices {
                }
             }
             else {
+               // ERROR: Not my company!
                return bl.errorResponse("BAD_REQUEST", " Company " + company + " entered is invalid!");
             }  
          }
          else {
-            // Company not entered
+            // ERROR: Company not entered
             return bl.errorResponse("BAD_REQUEST", " Company not supplied!");
          }
       }
@@ -133,7 +135,9 @@ public class CompanyServices {
       @QueryParam("dept_id") int dept_id
    ) {
       try{
+         // CHECK: Company and department ID was passed
          if(bl.notNull(company) && dept_id != 0){
+            // CHECK: Entered company is mine!
             if(bl.validateCompany(company)){
                dl = new DataLayer(company);      
                
@@ -149,10 +153,12 @@ public class CompanyServices {
                 }
             }
             else {
+               // ERROR: Company is not mine!
                return bl.errorResponse("BAD_REQUEST", " Company " + company + " entered is invalid!");
             } 
          }
          else {
+            // ERROR: Company and/or deparment ID not passed
             return bl.errorResponse("BAD_REQUEST", " Company and/or department ID not supplied!");
          } 
       }
@@ -163,8 +169,7 @@ public class CompanyServices {
          bl.closeDL(dl);
       }
    }
-   
-   
+    
    @Path("department")
    @POST
    @Produces(json)
@@ -176,7 +181,15 @@ public class CompanyServices {
       @FormParam("location") String location
    ){
       try{
-         if(bl.notNull(company) && bl.notNull(dept_name) && bl.notNull(dept_no) && bl.notNull(location)){
+         // List of entered fields
+         List<Object> fieldsList = new ArrayList<>();
+            fieldsList.add(company);
+            fieldsList.add(dept_name);
+            fieldsList.add(dept_no);
+            fieldsList.add(location);
+         
+         // Validate that entered fields aren't null!
+         if(bl.inputFieldsNotNull(fieldsList)){
             if(bl.validateCompany(company)){
               dl = new DataLayer(company);
               
@@ -198,15 +211,17 @@ public class CompanyServices {
                   return bl.ok(bl.departmentToJSON(validatedDep));
               }
               else {
-                  // return error Response
+                  // ERROR: Department validation failed!
                   return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input!");
               } 
             }
             else {
+               // ERROR: Company isn't mine!
                return bl.errorResponse("BAD_REQUEST", " Company " + company + " entered is invalid!");
             }
          }
          else {
+            // ERROR: Not all fields entered 
             return bl.errorResponse("BAD_REQUEST", " Invalid field(s) entered!");
          }
       }
@@ -218,13 +233,13 @@ public class CompanyServices {
       }
    }
    
-
    @Path("department")
    @PUT
    @Consumes("application/json")
    @Produces("application/json")
    public Response updateDepartment(String json){   
      try{
+         // Convert json string into json Object
          JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();     
          Set<String> keys = jsonObject.keySet();
          
@@ -282,7 +297,7 @@ public class CompanyServices {
               }     
          }
          else{
-            // User input doesn't have company or dept_id - don't proceed!
+            // ERROR: Company and/or dept_id wasn't passed which are both required to perform an update!
             return bl.errorResponse("BAD_REQUEST", " Company and/or dept_id not entered for update of department!");
          }  
       }
@@ -303,6 +318,7 @@ public class CompanyServices {
       @QueryParam("dept_id") int dept_id
    ){
       try{
+         // CHECK: company and dept_id were passed
          if(bl.notNull(company) && dept_id != 0){
             if(bl.validateCompany(company)){
                dl = new DataLayer(company);
@@ -310,26 +326,27 @@ public class CompanyServices {
                // GET department first to verify that it exists!
                Department dep = dl.getDepartment(company, dept_id);
                if(bl.notNull(dep)){
-                  int rows = dl.deleteDepartment(company, dept_id);
+                  int rows = dl.deleteDepartment(company, dept_id);  // deleteDepartment
                   if(rows > 0){
-                     // If rows is > 0, then delete was successful
                      return bl.ok(" Department " + dept_id + " from " + company + " deleted");
                   }
                   else {
-                     // Delete didn't return any rows
+                     // ERROR: Delete didn't return any rows
                      return bl.errorResponse("INTERNAL_SERVER_ERROR", rows + " rows affected");
                   }
                }
                else {
-                  // Department DOES NOT EXIST
+                  // ERROR: Department DOES NOT EXIST
                   return bl.errorResponse("NOT_FOUND", " Department " + dept_id + " from " + company + " doesn't exist!");
                }
             }
             else {
+               // ERROR: Company isn't mine
                return bl.errorResponse("BAD_REQUEST", " Company " + company + " entered is invalid!");
             } 
          }
          else {
+            // ERROR: Company and/or department ID weren't passed in to perform delete
             return bl.errorResponse("BAD_REQUEST", " Company and/or department ID not supplied!");
          } 
       }
@@ -352,6 +369,7 @@ public class CompanyServices {
    @Produces(json)
    public Response getAllEmployee(@QueryParam("company") String company){
       try{
+         // CHECK: Company was passed in
          if(bl.notNull(company)){
             if(bl.validateCompany(company)){
                dl = new DataLayer(company);
@@ -360,13 +378,13 @@ public class CompanyServices {
                List<Employee> employeeList = dl.getAllEmployee(company);
                List<String> employees = new ArrayList<String>();
                
+               // CHECK: employeeList contains retrieved employee objects
                if(employeeList.size() > 0){
                   for(int i = 0; i < employeeList.size(); i++){
                      employees.add(bl.employeeToJSON(employeeList.get(i)));
                   }
-                  
-                  // Return OK 
-                  return bl.ok(employees);
+
+                  return bl.ok(employees);   // return OK
                }
                else {
                   return bl.errorResponse("NOT_FOUND", " No employees found!");
@@ -397,6 +415,7 @@ public class CompanyServices {
       @QueryParam("emp_id") int emp_id 
    ){
       try{
+         // CHECK: company and emp_id were passed
          if(bl.notNull(company) && emp_id != 0){
             if(bl.validateCompany(company)){
                dl = new DataLayer(company);
@@ -469,9 +488,7 @@ public class CompanyServices {
                // VALIDATE the employee object
                Employee validatedEmp = bl.validateEmployee(emp, company, "POST");
                if(bl.notNull(validatedEmp)){
-                  // perform DL insert
-                  // return JSON string of newly inserted employee
-                  validatedEmp = dl.insertEmployee(validatedEmp);
+                  validatedEmp = dl.insertEmployee(validatedEmp); // insertEmployee
                   return bl.ok(bl.employeeToJSON(validatedEmp));
                }
                else {
@@ -502,6 +519,7 @@ public class CompanyServices {
    @Produces("application/json")
    public Response updateEmployee(String json){
      try{
+        // Convert json string into json object
         JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
         Set<String> keys = jsonObject.keySet();
          
@@ -589,6 +607,7 @@ public class CompanyServices {
       @QueryParam("emp_id") int emp_id
    ){
       try {
+         // CHECK: company and emp_id were passed in
          if(bl.notNull(company) && emp_id != 0){  
             if(bl.validateCompany(company)){
                dl = new DataLayer(company);
@@ -597,7 +616,7 @@ public class CompanyServices {
                Employee emp = dl.getEmployee(emp_id);
                
                if(bl.notNull(emp)){
-                  int rows = dl.deleteEmployee(emp_id);
+                  int rows = dl.deleteEmployee(emp_id);  // deleteEmployee
                   if(rows > 0){
                      return bl.ok(" Employee with ID " + emp_id + " from " + company + " deleted!");
                   }
@@ -640,17 +659,20 @@ public class CompanyServices {
       @QueryParam("emp_id") int emp_id
    ){
       try{
+         // CHECK: Company and emp_id were passed in
          if(bl.notNull(company) && emp_id != 0){
             if(bl.validateCompany(company)){
                dl = new DataLayer(company);
                
                List<Timecard> timecardList = dl.getAllTimecard(emp_id);
                List<String> timecards = new ArrayList<String>();
+               
+               // CHECK: Timecards were retrieved
                if(bl.notNull(timecardList) && timecardList.size() > 0){
                   for(int i = 0; i < timecardList.size(); i++){
                      timecards.add(bl.timecardToJSON(timecardList.get(i)));
                   }
-                  return bl.ok(timecards);  
+                  return bl.ok(timecards);   // return OK
                }
                else {
                   return bl.errorResponse("NOT_FOUND", " No timecards found for employee " + emp_id + "!");
@@ -681,6 +703,7 @@ public class CompanyServices {
       @QueryParam("timecard_id") int timecard_id
    ){
       try{
+         // CHECK: Company and timecard_id were passed in
          if(bl.notNull(company) && timecard_id != 0){
             if(bl.validateCompany(company)){
                dl = new DataLayer(company);
@@ -692,7 +715,7 @@ public class CompanyServices {
                   return bl.ok(bl.timecardToJSON(tc));  
                }
                else {
-                  return bl.errorResponse("NOT_FOUND", " Timecard " + String.valueOf(timecard_id) + " not found!");
+                  return bl.errorResponse("NOT_FOUND", " Timecard " + timecard_id + " not found!");
                } 
             }
             else{
@@ -722,6 +745,7 @@ public class CompanyServices {
       @FormParam("timecard_id") int timecard_id
    ){
       try {
+         // List to hold all user entered fields EXCEPT for timecard_id as it's not necessary
          List<Object> fieldsList = new ArrayList<>();
             fieldsList.add(company);
             fieldsList.add(emp_id);
@@ -741,12 +765,9 @@ public class CompanyServices {
                   tc = new Timecard(start_time, end_time, emp_id);
                }
                
-               Timecard validTimecard = bl.validateTimecard(tc, company, "POST");    
-               
+               Timecard validTimecard = bl.validateTimecard(tc, company, "POST");                
                if(bl.notNull(validTimecard)){
-                  // perform DL insert
-                  // return JSON string of newly inserted employee
-                  validTimecard = dl.insertTimecard(validTimecard);
+                  validTimecard = dl.insertTimecard(validTimecard);  // insertTimecards
                   return bl.ok(bl.timecardToJSON(validTimecard));
                }
                else {
@@ -776,6 +797,7 @@ public class CompanyServices {
    @Produces("application/json")
    public Response updateTimecard(String json){
       try {
+         // Convert json string into json object
          JsonObject jsonObject = new JsonParser().parse(json).getAsJsonObject();
          Set<String> keys = jsonObject.keySet();
          
@@ -833,7 +855,7 @@ public class CompanyServices {
             } 
          }
          else{
-            // User input doesn't have company or timecard_id - don't proceed!
+            // ERROR: Company and/or timecard_id not entered
             return bl.errorResponse("BAD_REQUEST", " Company and/or timecard_id not entered!");
          }         
       }
@@ -854,6 +876,7 @@ public class CompanyServices {
       @QueryParam("timecard_id") int timecard_id
    ){
       try {
+         // CHECK: company and timecard_id were passed in
          if(bl.notNull(company) && timecard_id != 0){
             if(bl.validateCompany(company)){
                dl = new DataLayer(company);
