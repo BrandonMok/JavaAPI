@@ -331,17 +331,17 @@ public class CompanyServices {
                
                   // Employees for this department
                   List<Employee> empList = dl.getAllEmployee(company);
-                  List<Employee> emps = new ArrayList<>();
-                  
-                  for(Employee employee : empList){
-                     if(employee.getDeptId() == dep.getId()){  // make sure employee's deptID == dept_id 
-                        // For the employee, get their timecards and delete them!
-                        List<Timecard> timecardList = dl.getAllTimecard(employee.getId());
-                        for(Timecard tcard : timecardList){
-                           dl.deleteTimecard(tcard.getId());   // delete Timecard(s)
+                  if(empList.size() > 0) {
+                     for(Employee employee : empList){
+                        if(employee.getDeptId() == dep.getId()){  // make sure employee's deptID == dept_id 
+                           // For the employee, get their timecards and delete them!
+                           List<Timecard> timecardList = dl.getAllTimecard(employee.getId());
+                           for(Timecard tcard : timecardList){
+                              dl.deleteTimecard(tcard.getId());   // delete Timecard(s)
+                           }
+                           
+                           dl.deleteEmployee(employee.getId());   // delete Employee
                         }
-                        
-                        dl.deleteEmployee(employee.getId());   // delete Employee
                      }
                   }
                             
@@ -387,7 +387,9 @@ public class CompanyServices {
    @Path("employees")
    @GET
    @Produces(json)
-   public Response getAllEmployee(@QueryParam("company") String company){
+   public Response getAllEmployee(
+      @QueryParam("company") String company
+   ){
       try{
          // CHECK: Company was passed in
          if(bl.notNull(company)){
@@ -635,6 +637,15 @@ public class CompanyServices {
                Employee emp = dl.getEmployee(emp_id);
                
                if(bl.notNull(emp)){
+                  // DELETE this employee's timecard!
+                  List<Timecard> timecardList = dl.getAllTimecard(emp.getId());
+                  if(timecardList.size() > 0){
+                     for (Timecard tc : timecardList){
+                        // Delete timecards that this employee has!
+                        dl.deleteTimecard(tc.getId());
+                     }
+                  }
+               
                   int rows = dl.deleteEmployee(emp_id);  // deleteEmployee
                   if(rows > 0){
                      return bl.ok(" Employee with ID " + emp_id + " from " + company + " deleted!");
