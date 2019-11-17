@@ -308,7 +308,6 @@ public class CompanyServices {
           bl.closeDL(dl);
       }
    }
-
    
    @Path("department")
    @DELETE
@@ -326,6 +325,27 @@ public class CompanyServices {
                // GET department first to verify that it exists!
                Department dep = dl.getDepartment(company, dept_id);
                if(bl.notNull(dep)){
+                  // 1) Delete timecards
+                  // 2) Delete Employees
+                  // 3) Finally delete department
+               
+                  // Employees for this department
+                  List<Employee> empList = dl.getAllEmployee(company);
+                  List<Employee> emps = new ArrayList<>();
+                  
+                  for(Employee employee : empList){
+                     if(employee.getDeptId() == dep.getId()){  // make sure employee's deptID == dept_id 
+                        // For the employee, get their timecards and delete them!
+                        List<Timecard> timecardList = dl.getAllTimecard(employee.getId());
+                        for(Timecard tcard : timecardList){
+                           dl.deleteTimecard(tcard.getId());   // delete Timecard(s)
+                        }
+                        
+                        dl.deleteEmployee(employee.getId());   // delete Employee
+                     }
+                  }
+                            
+                  // Delete Department
                   int rows = dl.deleteDepartment(company, dept_id);  // deleteDepartment
                   if(rows > 0){
                      return bl.ok(" Department " + dept_id + " from " + company + " deleted");
@@ -511,7 +531,6 @@ public class CompanyServices {
           bl.closeDL(dl);
       }
    }
-
    
    @Path("employee")
    @PUT
@@ -575,7 +594,7 @@ public class CompanyServices {
                      }
                   }
                   else {
-                     return bl.errorResponse("BAD_REQUEST", "Invalid field(s) and/or missing company and employee ID");
+                     return bl.errorResponse("BAD_REQUEST", " Invalid field(s) for inputs!");
                   }
                }
                else {
@@ -772,7 +791,7 @@ public class CompanyServices {
                }
                else {
                   // return error Response
-                  return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input!");
+                  return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input! Make sure employee exists and times are on a M-F basis between normal working hours!");
                } 
             }
             else {
@@ -805,6 +824,7 @@ public class CompanyServices {
          if(keys.contains("company") && keys.contains("timecard_id")){
             String company = jsonObject.get("company").getAsString();
             int timecard_id = jsonObject.get("timecard_id").getAsInt();
+            boolean empIDChanged = false;
             
             // CHECK: company entered is mine!
             if(bl.validateCompany(company)){
@@ -826,7 +846,12 @@ public class CompanyServices {
                               tc.setEndTime(end_time);
                               break;
                            case "emp_id":
-                              tc.setEmpId(jsonObject.get(eachKey).getAsInt());
+                              int startingID = tc.getId();                       // starting ID before update
+                              int newEmpID = jsonObject.get(eachKey).getAsInt(); // newly entered ID
+      //                         if(startingID != newEmpID){
+//                                  empIDChanged = true; // set flag to know
+//                               }
+                              tc.setEmpId(newEmpID);
                               break;
                         }
                      }  
@@ -836,6 +861,11 @@ public class CompanyServices {
                   tc = bl.validateTimecard(tc, company, "PUT");
                   if(bl.notNull(tc)){
                      if(bl.notNull(dl.updateTimecard(tc))){
+//                         if(empIDChanged){
+//                            // IF emp_id was changed on a timecard, have to cha
+//                         }
+                     
+                     
                         return bl.ok(bl.timecardToJSON(tc));
                      }
                      else {
