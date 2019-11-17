@@ -31,21 +31,45 @@ public class CompanyServices {
    
    
    /** ---------- COMPANY ---------- */
-/**   
+   
    @Path("company")
    @DELETE
    @Produces(json)
-   public Response deleteCompany( @QueryParam("company") String company ){
+   public Response deleteCompany( 
+      @QueryParam("company") String company 
+   ){
       try {
          if(bl.notNull(company)){
            if(bl.validateCompany(company)){
-               // Get all timecards -> delete (FK on emp_id) ( deleteTimecard(int timecard_id) )
-               // Get all employee -> delete (FK on dept_id) ( deleteEmployee(int emp_id) )
-               // Get all departments -> delete (NO FK) ( deleteDepartment(String company, int dept_id) )
-           
-               // Do DELETE
-               // int rows = dl.deleteCompany(company);
+                 // 1) Delete all timecards
+                 // 2) Delete all employees
+                 // 3) Delete all departments
+                 // 4) Delete company
+                 
+                 // Employees
+                 List<Employee> employeeList = dl.getAllEmployee(company);
+                 if(employeeList.size() > 0){
+                     for(Employee emp : employeeList){
+                        // Timecards
+                        List<Timecard> timecardList = dl.getAllTimecard(emp.getId());
+                        if(timecardList.size() > 0){
+                           for (Timecard tc : timecardList){
+                              dl.deleteTimecard(tc.getId());   // delete Timecard(s)
+                           }
+                        }
+                        dl.deleteEmployee(emp.getId());        // delete Employee(s)
+                     }
+                 }
+                 
+                 // Departments
+                 List<Department> departmentList = dl.getAllDepartment(company);
+                 if(departmentList.size() > 0){
+                     for (Department dep : departmentList){
+                        dl.deleteDepartment(company, dep.getId());   // delete Department(s)
+                     }
+                 }
                
+                 int rows = dl.deleteCompany(company); // delete Company
                  if(rows > 0){
                      // If rows is > 0, then delete was successful
                      return bl.ok(" Company " + company + "'s information deleted");
@@ -70,7 +94,6 @@ public class CompanyServices {
           bl.closeDL(dl);
       }  
    }
- */
  
  
  
