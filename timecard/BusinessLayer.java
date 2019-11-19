@@ -1,15 +1,20 @@
 package timecard;
-import companydata.*;
 
-import com.google.gson.*;
-import java.util.*;
-import java.net.*;
-import java.text.*;
-import org.apache.commons.io.*;
-import java.nio.charset.StandardCharsets;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import companydata.DataLayer;
+import companydata.Department;
+import companydata.Employee;
+import companydata.Timecard;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
-import javax.ws.rs.core.*;
-import javax.ws.rs.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
 * BusinessLayer
@@ -46,7 +51,7 @@ public class BusinessLayer {
    /** ---------- OTHER ---------- */
    /**
    * ok
-   * @param List<String>
+    * @param list<String>
    * @return Response
    * Returns an OK status response accepting a list
    */
@@ -55,7 +60,7 @@ public class BusinessLayer {
    }
    /**
    * ok
-   * @param String 
+    * @param message
    * @return Response  
    * Returns an OK status response accepting a String
    */
@@ -65,7 +70,7 @@ public class BusinessLayer {
    
    /**
    * errorResponse
-   * @param String,String
+    * @param message
    * @return Response
    * Returns an error Response based on a given type of error
    */ 
@@ -89,7 +94,7 @@ public class BusinessLayer {
    
    /**
    * notNull
-   * @param String
+    * @param obj
    * @return boolean
    * Reusable function to test if a given value isn't null (T = not null, F = null)
    */
@@ -143,7 +148,7 @@ public class BusinessLayer {
    
    /**
    * validateCompany
-   * @param String
+    * @param company
    * @return boolean
    * Validates that the requested company info is MINE
    */
@@ -157,7 +162,7 @@ public class BusinessLayer {
    
    /**
    * uniquePerCompany
-   * @param String, String
+    * @param str, company
    * @return String
    * Reusable function to make sure specific fields are company specific (i.e. dept_no, emp_id, ...)
    */
@@ -179,7 +184,7 @@ public class BusinessLayer {
    
    /**
     * closeDL
-    * @param DataLayer
+    * @param dl
     * Closes the datalayer object passed in if it existed
     */
    public void closeDL(DataLayer dl){
@@ -190,7 +195,7 @@ public class BusinessLayer {
    
    /**
     * stringToDate
-    * @param String
+    * @param date
     * @return Date
     */
    public java.sql.Date stringToDate(String date){
@@ -199,7 +204,7 @@ public class BusinessLayer {
 
    /**
     * validateDate
-    * @param Date
+    * @param date
     * @return boolean
     * Validates a date (employee hire_date)
     */
@@ -236,7 +241,7 @@ public class BusinessLayer {
    
    /**
    * validateTimestamp
-   * @param Timestamp
+    * @param startTime
    * @return boolean
    * Validates a given timestamp
    */
@@ -307,7 +312,7 @@ public class BusinessLayer {
    
    /**
    * validString
-   * @param String
+    * @param str
    * @return boolean
    * Reusable function to validate a string that shouldn't have any numbers
    */
@@ -327,7 +332,7 @@ public class BusinessLayer {
    
    /**
    * departmentToJSON
-   * @param Department
+    * @param department
    * @return String
    * Converts Department object to JSON
    */
@@ -337,7 +342,7 @@ public class BusinessLayer {
    
    /**
    * jsonToDepartment
-   * @param String
+    * @param department
    * @return Department
    * Converts JSON to Department object
    */
@@ -347,7 +352,7 @@ public class BusinessLayer {
    
    /**
    * validateDepartment
-   * @param Department, String, String
+    * @param dep, String, String
    * @return Department
    * Validates a Deparment object 
    */
@@ -424,7 +429,7 @@ public class BusinessLayer {
    
    /**
    * employeeToJSON
-   * @param Employee
+    * @param employee
    * @return String
    * Converts Employee object to JSON
    */
@@ -434,7 +439,7 @@ public class BusinessLayer {
    
    /**
    * jsonToEmployee
-   * @param String
+    * @param employee
    * @return Employee
    * Converts JSON to Employee object
    */
@@ -445,7 +450,7 @@ public class BusinessLayer {
    
    /**
    * validateEmployee
-   * @param Employee, String, String
+    * @param emp, String, String
    * @return Employee
    * Validates an employee object, returns an Employee Object as if there's any adjustments/changes will need to use changed object
    */
@@ -585,7 +590,7 @@ public class BusinessLayer {
    
    /**
    * timecardToJSON
-   * @param Timecard
+    * @param timecard
    * @return String
    * Converts Timecard object to JSON
    */
@@ -595,7 +600,7 @@ public class BusinessLayer {
    
    /**
    * jsonToTimecard
-   * @param String
+    * @param timecard
    * @return Timecard
    * Converts JSON to Timecard object
    */
@@ -605,7 +610,7 @@ public class BusinessLayer {
    
    /**
    * validateTimecard
-   * @param Timecard, String, String
+    * @param tc, String, String
    * @return Timecard
    * Validates that a timecard is valid before proceeding to a DL action
    */

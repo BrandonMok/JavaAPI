@@ -1,12 +1,22 @@
 package timecard;
 
-import companydata.*;
-import javax.ws.rs.core.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import companydata.DataLayer;
+import companydata.Department;
+import companydata.Employee;
+import companydata.Timecard;
+
 import javax.ws.rs.*;
-import java.util.*;
-import java.text.*;
+import javax.ws.rs.core.Response;
 import java.sql.Timestamp;
-import com.google.gson.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
 * CompanyServices
@@ -30,7 +40,7 @@ public class CompanyServices {
    DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
          
    // Business layer - validation
-   BusinessLayer bl = new BusinessLayer();
+   timecard.BusinessLayer bl = new timecard.BusinessLayer();
    
    
    /** ---------- COMPANY ---------- */
