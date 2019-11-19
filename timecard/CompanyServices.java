@@ -26,6 +26,9 @@ public class CompanyServices {
    // Produces JSON string - ALL functions return json
    public static final String json = "application/json";
    
+   // Date formatting
+   DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+         
    // Business layer - validation
    BusinessLayer bl = new BusinessLayer();
    
@@ -172,7 +175,7 @@ public class CompanyServices {
                 }
                 else {
                   // ERROR: Department NOT_FOUND   
-                  return bl.errorResponse("NOT_FOUND"," Department not found with ID: " + String.valueOf(dept_id));
+                  return bl.errorResponse("NOT_FOUND"," Department not found with ID: " + dept_id);
                 }
             }
             else {
@@ -226,7 +229,7 @@ public class CompanyServices {
                   dep = new Department(company, dept_name, dept_no, location);
               }
               
-              Department validatedDep = bl.validateDepartment(dep, company, "POST");
+              Department validatedDep = bl.validateDepartment(dep, company, "POST");   // validate department in BL
               if(bl.notNull(validatedDep)){
                   // Perform Department Insert
                   // return JSON string version of department
@@ -269,13 +272,13 @@ public class CompanyServices {
          // CHECK: if company and dept_id were at least passed
          if(keys.contains("company") && keys.contains("dept_id")){
               String company = jsonObject.get("company").getAsString();
-              String dept_id = jsonObject.get("dept_id").getAsString();
+              int dept_id = jsonObject.get("dept_id").getAsInt();
               
               // CHECK: if the entered company is mine
               if(bl.validateCompany(company)){
                   dl = new DataLayer(company); 
 
-                  Department dep = dl.getDepartment(company, Integer.parseInt(dept_id));
+                  Department dep = dl.getDepartment(company, dept_id);
                   
                   if(bl.notNull(dep)){                  
                      for(String eachKey : keys){
@@ -300,7 +303,8 @@ public class CompanyServices {
                      // If the passed in department object passed validation it won't be null
                      if(bl.notNull(dep)){
                         // Make sure that the returned Department from the Data Layer update method isn't null
-                        if(bl.notNull(dl.updateDepartment(dep))){  
+                        dep = dl.updateDepartment(dep);
+                        if(bl.notNull(dep)){  
                            return bl.ok(bl.departmentToJSON(dep));    // Successful update!
                         }
                         else {
@@ -472,7 +476,7 @@ public class CompanyServices {
                 }
                 else {
                   // ERROR: Not found  
-                  return bl.errorResponse("NOT_FOUND", " Employee not found with ID: " + String.valueOf(emp_id));
+                  return bl.errorResponse("NOT_FOUND", " Employee not found with ID: " + emp_id);
                 }       
             }
             else {
@@ -506,48 +510,37 @@ public class CompanyServices {
       @FormParam("emp_id") int emp_id
    ){
       try{
-         // Add all values into a list, pass it into inputFieldsNotNull, and check if all fields (emp_id not necessary) aren't null
-         List<Object> fieldsList = new ArrayList<>();
-            fieldsList.add(company);
-            fieldsList.add(emp_name);
-            fieldsList.add(emp_no);
-            fieldsList.add(hire_date);
-            fieldsList.add(job);
-            fieldsList.add(salary);
-            fieldsList.add(dept_id);
-            fieldsList.add(mng_id);
-         
-         // First check that all inputs were entered
-         if(bl.inputFieldsNotNull(fieldsList)){
-            if(bl.validateCompany(company)){
-               dl = new DataLayer(company);
-                      
-               Employee emp = null; 
-               if(bl.notNull(emp_id)){
-                  emp = new Employee(emp_id, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
-               }   
-               else {
-                  emp = new Employee(emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
-               }
-               
-               // VALIDATE the employee object
-               Employee validatedEmp = bl.validateEmployee(emp, company, "POST");
-               if(bl.notNull(validatedEmp)){
-                  validatedEmp = dl.insertEmployee(validatedEmp); // insertEmployee
-                  return bl.ok(bl.employeeToJSON(validatedEmp));
+         if(bl.validateCompany(company)){
+            dl = new DataLayer(company);
+                   
+            Employee emp = null; 
+            if(bl.notNull(emp_id)){
+               emp = new Employee(emp_id, emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
+            }   
+            else {
+               emp = new Employee(emp_name, emp_no, hire_date, job, salary, dept_id, mng_id);
+            }
+
+            
+            // VALIDATE the employee object
+            emp = bl.validateEmployee(emp, company, "POST");
+            if(bl.notNull(emp)){
+               emp = dl.insertEmployee(emp); // insertEmployee
+               if(bl.notNull(emp)){
+                  return bl.ok(bl.employeeToJSON(emp));
                }
                else {
-                  // return error Response
-                  return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input!");
-               } 
+                  return bl.errorResponse("BAD_REQUEST", " Inserting employee failed!");
+               }
             }
             else {
-               return bl.errorResponse("BAD_REQUEST", " Company "+company+" entered is invalid!");
-            }    
+               // return error Response
+               return bl.errorResponse("BAD_REQUEST", " Invalid field(s) entered!");
+            } 
          }
          else {
-            return bl.errorResponse("BAD_REQUEST", " Invalid field(s) entered!");
-         }  
+            return bl.errorResponse("BAD_REQUEST", " Company "+company+" entered is invalid!");
+         }    
       }
       catch(Exception e){
          return bl.errorResponse("ERROR", e.getMessage());
@@ -579,39 +572,40 @@ public class CompanyServices {
                Employee employee = dl.getEmployee(emp_id);
                if(bl.notNull(employee)){
                   for(String eachKey : keys){
-                     if(!eachKey.equals("company") || !eachKey.equals("emp_id")){
-                        switch(eachKey.toLowerCase()){
-                           case "emp_name":
-                              employee.setEmpName(jsonObject.get(eachKey).getAsString());
-                              break;
-                           case "emp_no":
-                              employee.setEmpNo(jsonObject.get(eachKey).getAsString());
-                              break;
-                           case "hire_date":
-                              java.sql.Date hDate = bl.stringToDate(jsonObject.get(eachKey).getAsString());   
-                              employee.setHireDate(hDate);
-                              break;
-                           case "job":
-                              employee.setJob(jsonObject.get(eachKey).getAsString());
-                              break;
-                           case "salary":
-                              employee.setSalary(jsonObject.get(eachKey).getAsDouble());
-                              break;
-                           case "dept_id":
-                              employee.setDeptId(jsonObject.get(eachKey).getAsInt());
-                              break;
-                           case "mng_id":
-                              employee.setMngId(jsonObject.get(eachKey).getAsInt());
-                              break;
-                        }
+                     switch(eachKey.toLowerCase()){
+                        case "emp_name":
+                           employee.setEmpName(jsonObject.get(eachKey).getAsString());
+                           break;
+                        case "emp_no":
+                           employee.setEmpNo(jsonObject.get(eachKey).getAsString());
+                           break;
+                        case "hire_date":
+                           String hireDateStr = jsonObject.get(eachKey).getAsString();
+                           java.util.Date date = df.parse(hireDateStr);
+                           java.sql.Date hire_date = new java.sql.Date(date.getTime()); 
+                           employee.setHireDate(hire_date);
+                           break;
+                        case "job":
+                           employee.setJob(jsonObject.get(eachKey).getAsString());
+                           break;
+                        case "salary":
+                           employee.setSalary(jsonObject.get(eachKey).getAsDouble());
+                           break;
+                        case "dept_id":
+                           employee.setDeptId(jsonObject.get(eachKey).getAsInt());
+                           break;
+                        case "mng_id":
+                           employee.setMngId(jsonObject.get(eachKey).getAsInt());
+                           break;
                      }
                   }
-                  
+           
                   // Validate updated Employee object
                   employee = bl.validateEmployee(employee, company, "PUT");
                   if(bl.notNull(employee)){
                      // Make sure that the returned Employee from the Data Layer update method isn't null
-                     if(bl.notNull(dl.updateEmployee(employee))){
+                     employee = dl.updateEmployee(employee);
+                     if(bl.notNull(employee)){
                         return bl.ok(bl.employeeToJSON(employee));
                      }
                      else {
@@ -736,7 +730,7 @@ public class CompanyServices {
             }
          }
          else {
-            return bl.errorResponse("BAD_REQUEST", " Company and/or employee ID not supplied!");
+            return bl.errorResponse("BAD_REQUEST", " Company and/or timecard ID not supplied!");
          }
       }
       catch(Exception e){
@@ -776,7 +770,7 @@ public class CompanyServices {
             }
          }
          else {
-            return bl.errorResponse("BAD_REQUEST", " Company and/or timecard ID not supplied!");
+            return bl.errorResponse("BAD_REQUEST", " Company and/or timecard ID not supplied or timecard ID doesn't exist!");
          }
       }
       catch(Exception e){
@@ -792,48 +786,35 @@ public class CompanyServices {
    @Produces(json)
    public Response insertTimecard(
       @FormParam("company") String company,
-      @FormParam("emp_id") int emp_id,
+      @FormParam("emp_id") int emp_id,          
       @FormParam("start_time") java.sql.Timestamp start_time,
       @FormParam("end_time") java.sql.Timestamp end_time,
-      @FormParam("timecard_id") int timecard_id
+      @FormParam("timecard_id") int timecard_id 
    ){
-      try {
-         // List to hold all user entered fields EXCEPT for timecard_id as it's not necessary
-         List<Object> fieldsList = new ArrayList<>();
-            fieldsList.add(company);
-            fieldsList.add(emp_id);
-            fieldsList.add(start_time);
-            fieldsList.add(end_time);
-      
-         // CHECK: input fields were all entered (timecard_id not necessary)
-         if(bl.inputFieldsNotNull(fieldsList)){
-            if(bl.validateCompany(company)){
-               dl = new DataLayer(company);
-               
-               Timecard tc = null;
-               if(bl.notNull(timecard_id)){
-                  tc = new Timecard(timecard_id, start_time, end_time, emp_id);
-               }
-               else {
-                  tc = new Timecard(start_time, end_time, emp_id);
-               }
-               
-               Timecard validTimecard = bl.validateTimecard(tc, company, "POST");                
-               if(bl.notNull(validTimecard)){
-                  validTimecard = dl.insertTimecard(validTimecard);  // insertTimecards
-                  return bl.ok(bl.timecardToJSON(validTimecard));
-               }
-               else {
-                  // return error Response
-                  return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input! Make sure employee exists and times are on a M-F basis between normal working hours!");
-               } 
+      try {      
+         if(bl.validateCompany(company)){
+            dl = new DataLayer(company);
+            
+            Timecard tc = null;
+            if(bl.notNull(timecard_id)){
+               tc = new Timecard(timecard_id, start_time, end_time, emp_id);
             }
             else {
-               return bl.errorResponse("NOT_FOUND", " Company " + company + " entered is invalid!");
+               tc = new Timecard(start_time, end_time, emp_id);
             }
+            
+            Timecard validTimecard = bl.validateTimecard(tc, company, "POST");              
+            if(bl.notNull(validTimecard)){
+               validTimecard = dl.insertTimecard(validTimecard);  // insertTimecards
+               return bl.ok(bl.timecardToJSON(validTimecard));
+            }
+            else {
+               // return error Response
+               return bl.errorResponse("BAD_REQUEST", " Invalid field(s) input! Make sure start and end times are on a M-F basis between normal 9-5 workday!");
+            } 
          }
          else {
-            return bl.errorResponse("BAD_REQUEST", " Company and/or timecard not supplied!");
+            return bl.errorResponse("NOT_FOUND", " Company " + company + " entered is invalid!");
          }
       }
       catch(Exception e){
@@ -879,32 +860,21 @@ public class CompanyServices {
                               Timestamp end_time = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(jsonObject.get(eachKey).getAsString()).getTime());    
                               tc.setEndTime(end_time);
                               break;
-                           case "emp_id":
-                              int startingID = tc.getId();                       // starting ID before update
-                              int newEmpID = jsonObject.get(eachKey).getAsInt(); // newly entered ID
-      //                         if(startingID != newEmpID){
-//                                  empIDChanged = true; // set flag to know
-//                               }
-                              tc.setEmpId(newEmpID);
-                              break;
                         }
                      }  
                   }
-                  
+         
                   // validate updated Timecard object
                   tc = bl.validateTimecard(tc, company, "PUT");
-                  if(bl.notNull(tc)){
-                     if(bl.notNull(dl.updateTimecard(tc))){
-//                         if(empIDChanged){
-//                            // IF emp_id was changed on a timecard, have to cha
-//                         }
-                     
-                     
-                        return bl.ok(bl.timecardToJSON(tc));
+                  
+                  if(bl.notNull(tc)){  
+                     Timecard updatedCard = dl.updateTimecard(tc);
+                     if(bl.notNull(updatedCard)){                    
+                        return bl.ok(bl.timecardToJSON(updatedCard));
                      }
                      else {
                         return bl.errorResponse("BAD_REQUEST", " Update failed on timecard!");
-                     }
+                    }
                   }
                   else {
                      return bl.errorResponse("BAD_REQUEST"," Invalid field(s) and/or missing company and timecard_id");

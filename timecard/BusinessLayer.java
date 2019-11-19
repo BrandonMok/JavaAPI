@@ -27,6 +27,10 @@ public class BusinessLayer {
    
    // Company - must be bxm5989
    public static final String MYCOMPANY = "bxm5989";
+   
+   // Dateformatter
+   DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+
 
    /**
    *  Constructor
@@ -199,42 +203,35 @@ public class BusinessLayer {
     * @return boolean
     * Validates a date (employee hire_date)
     */
-   public boolean validateDate(Date date){
-      try{
-         boolean valid = false;
-            
-   		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-   		String dateStr = df.format(date);
-   		Date parsedDate = new SimpleDateFormat("yyyy-MM-dd").parse(dateStr);
-   		 
-   		// Calendar - Calendar for passed in date!
-   		Calendar calendar = Calendar.getInstance(); 
-   		calendar.setTime(parsedDate);
-   		 
-   		// Calendar - Current Calendar Date
-   		Calendar currentCal = Calendar.getInstance();
-   		Date currentDate = currentCal.getTime();  // Date OBJ for current date
-   		 
-         // # day of the week
-         int day = calendar.get(Calendar.DAY_OF_WEEK);                     // #'ed day of the week (1-7)
-         int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);             // #'ed day of the month   (1-(29-31))
-         int maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);   // maximum # of days in the month
+   public boolean validateDate(Date date){  // Date date
+      boolean valid = false;
         
-         // validate
-         if((day >= 2 && day <= 6) && 
-            (dayOfMonth > 0 && dayOfMonth <= maxDays) && 
-            (parsedDate.equals(currentDate) || parsedDate.before(currentDate))
-         ){
-            // Is valid!
-            valid = true;  
-         }
-   
-         return valid;            
+      // Date - The date that was passed in by the user!   
+		//Date parsedDate = new SimpleDateFormat("yyyy-MM-dd").parse(df.format(date));
+      Date parsedDate = date;
+		 
+		// Calendar - Calendar for passed in date!
+		Calendar calendar = Calendar.getInstance(); 
+		calendar.setTime(parsedDate);
+		 
+		// Calendar - Current Calendar Date
+		Date currentDate = Calendar.getInstance().getTime();  // Date OBJ for current date
+		 
+      // # day of the week
+      int day = calendar.get(Calendar.DAY_OF_WEEK);                     // #'ed day of the week (1-7)
+      int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);             // #'ed day of the month   (1-(29-31))
+      int maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);   // maximum # of days in the month
+     
+      // validate
+      if((day >= 2 && day <= 6) && 
+         (dayOfMonth > 0 && dayOfMonth <= maxDays) && 
+         (parsedDate.equals(currentDate) || parsedDate.before(currentDate))
+      ){
+         // Is valid!
+         valid = true;  
       }
-      catch(ParseException pe){
-         // Error with parsing format - wrong entered format
-         return false;
-      }
+
+      return valid;            
    }
    
    /**
@@ -244,21 +241,19 @@ public class BusinessLayer {
    * Validates a given timestamp
    */
    public boolean validateTimestamp(int employeeID, Timestamp startTime, Timestamp endTime){
-      try{
-         // Create dateformat template -> format the timestamp to a string -> reformat back to timestamp by parsing 
-         // If anything goes wrong in between, then timestamp isn't in right format
-         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-         Timestamp start = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(df.format(startTime)).getTime());  
-         Timestamp end = new Timestamp(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(df.format(endTime)).getTime());  
-         
+         // Timestamps
+         Timestamp start = startTime;
+         Timestamp end = endTime;
+              
          // Start_time must be valid date and time equal to current day or 1 week ago from current date
          Date startDate = new Date(start.getTime());
          Date endDate = new Date(end.getTime());
          
+         // Calendars - Used for compare 
          Calendar startCal = Calendar.getInstance();
          Calendar endCal = Calendar.getInstance();
-         startCal.setTime(startDate);
-         endCal.setTime(endDate);
+            startCal.setTime(startDate);
+            endCal.setTime(endDate);
          
          
          // Validate startDate & endDate - must be on a M-F basis
@@ -266,33 +261,32 @@ public class BusinessLayer {
             return false;
          }
          
+         // Calendar - 1 week ago
          // start_time must be a valid date and time equal to the current date or up to 1 week ago from the current date
-         SimpleDateFormat dateOnly = new SimpleDateFormat("yyyy-MM-dd");
          Calendar c = Calendar.getInstance();
-         c.set(Calendar.DATE, c.get(Calendar.DATE)-7);   // check timestamp from a week or go
-         Date pastDate = c.getTime();
-         
-         // CURRENT
-         Calendar today = Calendar.getInstance();
-         Date todayDate = today.getTime();   
-         
-         // start cannot be the after today AND cannot be before at most a week ago!  ( [1 week ago - today] )
-         if(start.after(todayDate) || start.before(pastDate)){  
+            c.set(Calendar.DATE, c.get(Calendar.DATE)-7);   // check timestamp from a week or go
+
+         // Calendar - TODAY
+         Calendar todayCal = Calendar.getInstance();      
+
+        
+         // Start cannot be after today and cannot be before a week ago
+         if(startCal.after(todayCal) || startCal.before(c)){
             return false;
-         }
+         }                
          
          // end_time needs to be on the same day as start_Time and at least 1 hour greater than start_time
-         // IF it made it past the this.validateDate() then format is fine, so proceed
-         // if NOT on the same day OR endDate is before the starting date OR startDate is greater than endDate an hour after startDate
+         // If it made it past the this.validateDate() then format is fine, so proceed
+         //if NOT on the same day OR endDate is before the starting date OR startDate is greater than endDate an hour after startDate
          if( (startCal.get(Calendar.DAY_OF_MONTH) != endCal.get(Calendar.DAY_OF_MONTH)) || 
               (startCal.get(Calendar.YEAR) != endCal.get(Calendar.YEAR)) ||
               (startCal.get(Calendar.DATE) != endCal.get(Calendar.DATE)) || 
               endDate.before(startDate) || startDate.getHours() > endDate.getHours() + 1){
             return false;
          }
-    
-         // Time must be within 06:00:00 - 18:00:00
-         // If not return false, don't continue
+     
+         //Time must be within 06:00:00 - 18:00:00
+         //If not return false, don't continue
          if( (start.getHours() < 6 || start.getHours() > 18) ||   
              (end.getHours() < 6 || end.getHours() > 18) ||
              (start.getHours() == end.getHours())){ 
@@ -300,7 +294,7 @@ public class BusinessLayer {
          }
          
           
-         // Start_time cannot be on the same day as any other other start_time for that employee
+         //Start_time cannot be on the same day as any other other start_time for that employee
          List<Timecard> timeList = dl.getAllTimecard(employeeID);
          for (Timecard tCard : timeList){
             if(tCard.getStartTime() == start){
@@ -308,11 +302,7 @@ public class BusinessLayer {
             }
          }
          
-        return true;   // if false wasn't returned, true will be returned
-      }
-      catch(ParseException pe){
-         return false;
-      }
+      return true;   // if false wasn't returned, true will be returned
    }
    
    /**
@@ -329,8 +319,6 @@ public class BusinessLayer {
       }  
       return valid;
    }
-   
-
   
   
   
@@ -368,8 +356,8 @@ public class BusinessLayer {
          if(this.validateCompany(company)){
             dl = new DataLayer(company);
             
-            Department department = dl.getDepartment(company, dep.getId());  
-            List<Department> depList = dl.getAllDepartment(company);
+            Department department = dl.getDepartment(company, dep.getId());   // Get specific department
+            List<Department> depList = dl.getAllDepartment(company);          // get all Departments
             if(action.equals("PUT")){
                if(!this.notNull(department)){
                   // PUT: don't want the department to be null when trying to update it
@@ -472,16 +460,22 @@ public class BusinessLayer {
              // For PUT, want it to exist so if notNull returns false (is null)  return false
              // For POST, don't want it to exist so if notNUll returns true (object returned) return false
              Employee employee = dl.getEmployee(emp.getId());
-             if(!this.notNull(employee) && action.equals("PUT")){
-               return null;
+             if(action.equals("PUT")){
+               if(!this.notNull(employee)){
+                  // PUT: don't want the employee to be null when trying to update it
+                  return null;
+               }
              }
-             else if (this.notNull(employee) && action.equals("POST")){
-               return null;
+             else if(action.equals("POST")){
+               if(this.notNull(employee)){
+                  // POST: don't want an employee object to exist already
+               }
              }
+     
              
              // Dept_ID check - must be an existing department
              Department department = dl.getDepartment(company, emp.getDeptId());
-             if(!this.notNull(this.departmentToJSON(department))){ 
+             if(!this.notNull(department)){ 
                return null; 
              }
              
@@ -515,15 +509,17 @@ public class BusinessLayer {
                 // Employee who's mng_id entered isn't an existing employee
                 // Set to an existing manager
                 if(!existingEmp){
-                  // In case of a PUT, if mng_id doesn't match an existing employee's emp_id (employee DNE), then error out
                   if(action.equals("PUT")){
-                     return null;
+                     if(emp.getMngId() == 0){  
+                        // set employee's mng_id to an employee who doesn't have a manager
+                        emp.setMngId(tempEmployee.getId());
+                     }
+                     else {
+                        return null;
+                     }
                   }
-                
-                  // set employee's mng_id to an employee who doesn't have a manager
-                  emp.setMngId(tempEmployee.getId());
                 }
-             }
+             }// end for
              
 
              //emp_no
@@ -547,9 +543,8 @@ public class BusinessLayer {
                }
              }
                         
-             // If there wasn't an employee found with the uniquely created/modifed emp_no, 
-             // and the unique emp_no wasn't changed from validation compared to one entered by user
-             // set the object's emp_no to the uniquePerCompany()
+             //If there wasn't an employee found with the uniquely created/modifed emp_no, 
+             //and the unique emp_no wasn't changed from validation compared to one entered by user
              if(emp_no != emp.getEmpNo()){
                emp.setEmpNo(emp_no);
              }
@@ -648,6 +643,12 @@ public class BusinessLayer {
             
             // If startTime and endTime didn't pass timestamp validation
             if(!this.validateTimestamp(tc.getEmpId(), startTime, endTime)){
+               return null;
+            }
+            
+            // Validate that employee exists!
+            Employee findEmployee = dl.getEmployee(tc.getEmpId());
+            if(!this.notNull(findEmployee)){
                return null;
             }
 
